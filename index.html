@@ -325,7 +325,7 @@ details.notes ul { margin: 8px 0 2px; padding-left: 18px; color: var(--muted); f
 .phead { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
 .ptitle { font-family: var(--font-display); font-size: 19px; font-weight: 700; color: var(--sun); }
 #player .pk { font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
-.ptabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; position: sticky; top: 0; background: var(--night); padding: 6px 0; z-index: 2; }
+.ptabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; margin-bottom: 12px; position: sticky; top: 0; background: var(--night); padding: 6px 0; z-index: 2; }
 .ptabs button { background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 10px 4px; font: 600 12.5px/1.2 Poppins, sans-serif; cursor: pointer; }
 .ptabs button.on { background: var(--sun); color: var(--sun-ink); border-color: var(--sun); }
 .pcard { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-top: 12px; }
@@ -1107,7 +1107,7 @@ if (PM.on && !PM.mode) PM.mode = 'joueur';
 let PLAYER = PM.mode === 'joueur';
 let GATE = !PM.mode;
 PM.rids = PM.rids || []; PM.rids1 = PM.rids1 || [];
-let INSCRITS = [], INS_SUB = null;
+let INSCRITS = [], INS_SUB = null, COF = [];
 function inscritsStart() {
   if (INS_SUB || typeof SY === 'undefined' || !SY.db) return;
   try {
@@ -1115,6 +1115,12 @@ function inscritsStart() {
       INSCRITS = snap.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => (a.ts || 0) - (b.ts || 0));
       const a = document.activeElement; if (a && (a.tagName === 'INPUT' || a.tagName === 'SELECT')) return;
       if (!GATE && !PLAYER) render();
+    }, () => {});
+    SY.db.collection('coffre').onSnapshot(snap => {
+      COF = snap.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => (a.ts || 0) - (b.ts || 0));
+      coffreCheck();
+      const a = document.activeElement; if (a && (a.tagName === 'INPUT' || a.tagName === 'SELECT')) return;
+      if (!GATE && !PLAYER && S.level === 1) render();
     }, () => {});
   } catch (e) {}
 }
@@ -1299,13 +1305,14 @@ function pShell(body, title, pill) {
   box.innerHTML = `<div class="pwrap">${head}${body}${foot}</div>`;
 }
 
-function pClick(ev) {
-  const b = ev.target.closest('[data-ptab],[data-psel],[data-pteam],[data-pme],[data-punlock],[data-ppin],[data-preg],[data-gate],[data-gjoin],[data-gpin],[data-gback],[data-phome],[data-plvl]'); if (!b) return;
+async function pClick(ev) {
+  const b = ev.target.closest('[data-ptab],[data-psel],[data-pteam],[data-pme],[data-punlock],[data-ppin],[data-preg],[data-gate],[data-gjoin],[data-gpin],[data-gback],[data-phome],[data-plvl],[data-pcode]'); if (!b) return;
   ev.stopPropagation(); ev.preventDefault();
   const d = b.dataset;
   if (d.gate || d.gback !== undefined || d.gjoin !== undefined || d.gpin !== undefined) return gateClick(d);
   if (d.preg !== undefined) { PM.reg = +d.preg || PM.lvl || 2; GATE = true; pmSave(); return render(); }
   if (d.phome !== undefined) PM.lvl = null;
+  if (d.pcode !== undefined) { const me = myIdx1(); if (me !== null) await sendCode(me); }
   if (d.plvl) { PM.lvl = +d.plvl; PM.tab = PM.lvl === 1 ? 'royaume' : 'carte'; }
   if (d.ptab) PM.tab = d.ptab;
   if (d.psel) PM.sel = PM.sel === d.psel ? null : d.psel;
@@ -1415,9 +1422,9 @@ function pRegCall(lv, txt) {
 
 /* ---------- Niveau 1 · Cotonou, côté joueur ---------- */
 function pL1() {
-  const me = myIdx1(), tab = ['royaume', 'village', 'moi', 'savoir'].includes(PM.tab) ? PM.tab : 'royaume';
+  const me = myIdx1(), tab = ['royaume', 'village', 'coffre', 'moi', 'savoir'].includes(PM.tab) ? PM.tab : 'royaume';
   if (!PM.rids1.length) return pRegCall(1, "Entrez votre nom pour suivre votre royaume, l'énergie du village et vos points.");
-  const tabs = [['royaume', 'Royaume'], ['village', 'Village'], ['moi', 'Moi'], ['savoir', 'Le saviez-vous ?']];
+  const tabs = [['royaume', 'Royaume'], ['village', 'Village'], ['coffre', 'Coffre'], ['moi', 'Moi'], ['savoir', 'Savoir']];
   const nav = `<nav class="ptabs">${tabs.map(([k, l]) => `<button class="${tab === k ? 'on' : ''}" data-ptab="${k}">${l}</button>`).join('')}</nav>`;
   let v;
   if (me === null) v = `<div class="pcard" style="text-align:center"><div style="font-size:36px">✓</div><h3>Vous êtes inscrit${PM.rids1.length > 1 ? 's' : ''}</h3><p class="muted">${esc((PM.names1 || []).join(', '))}</p><p class="muted" style="margin:0">L'animatrice vous ajoute à la partie dans un instant.</p></div><div class="pcard"><div class="pk">Un seul téléphone pour plusieurs personnes ?</div><button class="pbtn" data-preg="1">Inscrire une autre personne</button></div>`;
@@ -1431,12 +1438,51 @@ function pL1() {
     v = `<div class="pcard"><div class="pk">Énergie du village</div><b class="big">${S.fin.open ? 100 : e} %</b><div class="pbar"><i style="width:${S.fin.open ? 100 : e}%"></i></div>
       ${S.fin.open ? '<p style="margin:10px 0 0;color:var(--sun);font-weight:600">Le village est allumé.</p>' : ''}</div>
       <div class="pcard"><div class="pk">Les composants du réseau</div>${Object.keys(L).map(k => `<div class="pdrow"><span>${L[k]}</span><b style="color:${c[k] ? 'var(--ok)' : 'var(--muted)'}">${c[k] ? 'gagné ✓' : 'à gagner'}</b></div>`).join('')}</div>`;
+  } else if (tab === 'coffre') {
+    v = pCoffre(me);
   } else if (tab === 'moi') {
     const P = points(), b = S.bdg && S.bdg.aw ? S.bdg.aw[me] : null;
     v = `<h3 class="ph">${esc(S.players[me].name)}</h3><div class="pcard"><div class="pk">Vos points de participation</div><b class="big">${P[me] || 0}</b></div>
       ${b && BMAP[b] ? `<div class="pbadge"><div class="ic">${bsvg(b)}</div><div><div class="pk">Votre titre de Cotonou</div><b>${esc(BMAP[b].fr)}</b><span class="muted">${esc(BMAP[b].dfr)}</span></div></div>` : `<div class="pfact lock"><b>★</b><span>Votre titre sera révélé à la clôture, voté par le groupe.</span></div>`}`;
   } else v = `<h3 class="ph">Cotonou</h3>${FACTS.cotonou.map(([h, p]) => `<div class="pfact"><b>${esc(h)}</b><span>${esc(p)}</span></div>`).join('')}<h3 class="ph">CFAO Green Infra</h3>${FACTS.green.map(([h, p]) => `<div class="pfact"><b>${esc(h)}</b><span>${esc(p)}</span></div>`).join('')}`;
   return me === null ? v : nav + `<div class="pbody">${v}</div>`;
+}
+
+
+/* ---------- le coffre de Cotonou dans l'application ---------- */
+/* Les capitaines entrent le code sur leur téléphone ; un appareil animateur valide et ouvre le coffre pour tous. */
+function coffreCheck() {
+  if (PLAYER || GATE || !S.fin || S.fin.open) return;
+  const ok = COF.find(a => String(a.code) === CODE);
+  if (!ok) return;
+  S.fin.open = true; S.fin.win = ok.team; S.fin.d = CODE.split(''); save(); render();
+}
+const team1Of = i => { const T = teams(); const t = T.findIndex(x => x.includes(i)); return t; };
+function captCard() {
+  const T = teams(), cap = S.capt || [null, null];
+  const tries = t => COF.filter(a => a.team === t).length;
+  return `<div class="card" style="margin-top:14px"><h3>Les capitaines <span class="muted" style="font-size:13px">· ils entrent le code sur leur téléphone</span></h3>
+    <p class="muted" style="margin:0 0 10px;font-size:13px">Chaque équipe choisit son capitaine. Touchez son nom. Sur son téléphone, l'onglet « Coffre » lui permet d'entrer le code : le premier qui trouve 1852 ouvre le coffre pour tout le monde. Ouvrez alors le cadenas du vrai coffre.</p>
+    ${T.map((ids, t) => `<div style="margin-bottom:10px"><b>${TEAM_NAMES[t]}</b> <span class="muted" style="font-size:13px">· ${tries(t)} essai${tries(t) > 1 ? 's' : ''} depuis les téléphones</span><div class="row" style="margin-top:6px">${ids.map(i => `<button class="btn small ${cap[t] === i ? '' : 'ghost'}" data-capt="${t}:${i}">${esc(pname(i))}${cap[t] === i ? ' · capitaine' : ''}</button>`).join('')}</div></div>`).join('')}
+    ${S.fin.open && S.fin.win !== undefined && S.fin.win !== null ? `<p style="margin:6px 0 0;color:var(--ok);font-weight:600">Coffre ouvert depuis l'application par ${TEAM_NAMES[S.fin.win]}.</p>` : ''}</div>`;
+}
+function pCoffre(me) {
+  const t = team1Of(me), cap = (S.capt || [])[t];
+  if (S.fin.open) return `<div class="pcard" style="text-align:center"><div style="font-size:40px">🔓</div><h3>Le coffre est ouvert</h3><p style="margin:0">${S.fin.win !== undefined && S.fin.win !== null ? esc(TEAM_NAMES[S.fin.win]) + ' a trouvé le code. ' : ''}Le village s'allume.</p></div>`;
+  if (t < 0) return `<div class="pcard"><p class="muted" style="margin:0">Les équipes ne sont pas encore formées.</p></div>`;
+  if (cap !== me) return `<div class="pcard"><div class="pk">${esc(TEAM_NAMES[t])}</div><h3>Le coffre est fermé</h3><p class="muted" style="margin:0">${cap === null || cap === undefined ? "Votre équipe n'a pas encore de capitaine : désignez-le et dites-le à l'animatrice." : `Seul votre capitaine, ${esc(pname(cap))}, peut entrer le code.`}</p></div>`;
+  return `<div class="pcard"><div class="pk">${esc(TEAM_NAMES[t])} · vous êtes capitaine</div><h3>Le code du coffre</h3><p class="muted" style="margin:0 0 12px">Entrez les 4 chiffres trouvés par votre équipe, dans l'ordre : panneau, batterie, onduleur, câble.</p>
+    <div class="gform"><input id="pcode" inputmode="numeric" maxlength="4" placeholder="• • • •" aria-label="Code du coffre" autocomplete="off" style="letter-spacing:8px;text-align:center;font-size:22px"><button class="pbtn" data-pcode>Ouvrir</button></div>
+    ${PM.cmsg ? `<p style="margin:10px 0 0;color:${PM.cmsg === 'ok' ? 'var(--ok)' : 'var(--bad)'}">${PM.cmsg === 'ok' ? 'Bon code ! Le coffre s\'ouvre…' : PM.cmsg === 'ko' ? "Ce n'est pas le bon code. Réessayez." : esc(PM.cmsg)}</p>` : ''}</div>`;
+}
+async function sendCode(me) {
+  const v = ((document.getElementById('pcode') || {}).value || '').trim();
+  if (!/^\d{4}$/.test(v)) { PM.cmsg = 'Entrez 4 chiffres.'; return; }
+  const row = { team: team1Of(me), code: v, who: me, ts: Date.now() };
+  if (typeof SY !== 'undefined' && SY.db) {
+    try { await Promise.race([SY.db.collection('coffre').doc('c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)).set(row), new Promise(r => setTimeout(r, 5000))]); } catch (e) { PM.cmsg = "L'envoi n'est pas passé. Vérifiez la connexion."; return; }
+  } else if (v === CODE) { S.fin.open = true; S.fin.win = row.team; S.fin.d = CODE.split(''); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  PM.cmsg = v === CODE ? 'ok' : 'ko';
 }
 
 /* ---------- State ---------- */
@@ -1851,6 +1897,7 @@ V.final = () => {
   <h2>Quatre composants, quatre chiffres, un seul code</h2>
   <p class="lead">Chaque binôme résout l'énigme de son composant. Ensuite, branchez le réseau dans le bon ordre : le courant part du panneau, charge la batterie, passe par l'onduleur, puis file dans le câble.</p>
   <div class="enigmas" style="margin-top:14px">${cards}</div>
+  ${captCard()}
   <div class="card lock">
     <h3 style="margin:0">Le code du coffre</h3>
     <div class="code ${S.fin.open ? 'good' : ''}" id="code">${[0, 1, 2, 3].map(j => `<input id="cd${j}" data-cd="${j}" inputmode="numeric" maxlength="1" aria-label="Chiffre ${j + 1} du code" value="${S.fin.open ? CODE[j] : ''}" ${S.fin.open ? 'disabled' : ''}>`).join('')}</div>
@@ -1935,6 +1982,7 @@ document.addEventListener('click', ev => {
   const t = ev.target.closest('button'); if (!t || t.disabled) return;
   const d = t.dataset;
   if (d.nimp) return importInscrits(+d.nimp);
+  if (d.capt) { const [t, i] = d.capt.split(':').map(Number); S.capt = (S.capt || [null, null]).slice(); S.capt[t] = S.capt[t] === i ? null : i; save(); return render(); }
   if (d.profil !== undefined) { PM.mode = null; PM.gstep = ''; PM.reg = false; PM.lvl = null; pmSave(); GATE = true; PLAYER = false; window.scrollTo({ top: 0 }); return render(); }
   if (d.go !== undefined) return go(+d.go);
   if (d.level !== undefined) { S.level = +d.level; save(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
