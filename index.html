@@ -370,6 +370,10 @@ details.notes ul { margin: 8px 0 2px; padding-left: 18px; color: var(--muted); f
 .pbar { height: 10px; border-radius: 6px; background: var(--panel-2); overflow: hidden; margin-top: 10px; } .pbar i { display: block; height: 100%; background: var(--sun); }
 .prow2 { grid-template-columns: 24px minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1.2fr) !important; }
 
+.relais { display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-top:12px; padding:12px 14px; border-radius:12px; background:rgba(251,188,4,.12); border:1px solid rgba(251,188,4,.5); animation:relin .5s ease-out; }
+.relais .rk { font-family:var(--font-display); font-weight:800; font-size:20px; color:#FBBC04; animation:relpulse 1.2s ease-in-out 2; }
+@keyframes relin { from { opacity:0; transform:translateY(-6px) scale(.98); } to { opacity:1; transform:none; } }
+@keyframes relpulse { 50% { transform:scale(1.15); } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 
@@ -740,8 +744,9 @@ const ST2 = [
   { id: 'maro', lieu: 'Quartier Maro', pole: 'Lift', jeu: 'Le panneau des étages', jen: 'The floor panel', secs: 480,
     regle: ["Deux bornes, une par équipe, avec 8 motifs chacune : les 8 « étages » du panneau.", "Au centre, un paquet de cartes : des motifs des bornes, des motifs qui n'existent pas et des cartes neutres.", "À tour de rôle, chaque équipe tire une carte. Si le motif est sur sa borne, elle le pose dessus. Sinon, la carte est défaussée.", "La première équipe qui remplit ses 8 étages gagne la pièce de la tenture."],
     mini: [["Je suis le quartier des familles revenues du Brésil, aux maisons colorées. Quel est mon nom ?", 'Maro'], ['Comment appelle-t-on au Bénin les familles revenues du Brésil ?', 'Les Agoudas'], ['Masques et costumes colorés venus du Brésil, cette mascarade défile à Ouidah et à Porto-Novo. Laquelle ?', 'Le Bourian (à confirmer avec le guide)'], ["Lift · Quelle est la marque d'ascenseurs de référence du pôle Lift ?", 'Otis']] },
-  { id: 'mus', lieu: "Musée d'histoire", pole: 'Renewable Energy', jeu: 'La visite', jen: 'The visit', secs: 900,
-    regle: ["Visite guidée du fort portugais, sans jeu pendant la visite.", "À la sortie, le guide pose 3 questions sur ce que les équipes ont vu. Chaque équipe répond par écrit.", "L'équipe qui a le plus de bonnes réponses gagne la pièce de la tenture. En cas d'égalité, question subsidiaire."],
+  { id: 'mus', lieu: "Musée d'histoire", pole: 'Renewable Energy', jeu: 'Les trois lieux', jen: 'The three places', secs: 600,
+    regle: ["Pas de visite : on reste devant le fort. Le guide raconte son histoire en 3 minutes, et l'équipe joue ses 4 cartes mini-jeux.", "C'est la dernière étape à pied pour les deux équipes : le bus attend devant le fort.", "En bus vers la Porte, sans descendre : le bus ralentit devant la place Chacha, puis devant l'Arbre de l'Oubli. Le guide raconte.", "Entre l'Arbre de l'Oubli et la Porte, le guide pose 3 questions, une par lieu. Chaque équipe écrit ses réponses. Celle qui a le plus de bonnes réponses gagne la pièce de la tenture. En cas d'égalité, question subsidiaire."],
+    q3: [["Le fort · Pourquoi les Portugais ont-ils construit ce fort ?", "Pour protéger leur comptoir de commerce, dont la traite des captifs (à confirmer avec le guide)"], ["La place Chacha · Que se passait-il sur cette place ?", "Les captifs y étaient vendus aux enchères"], ["L'Arbre de l'Oubli · Combien de fois les hommes tournaient-ils autour de l'arbre ?", "9 fois (les femmes 7 fois), pour oublier leur origine"], ["Question subsidiaire · Comment s'appelait le marchand surnommé « Chacha » ?", "Francisco Félix de Souza"]],
     mini: [["Je suis un fort construit par les Portugais en 1721, et je suis resté portugais jusqu'en 1961. Qui suis-je ?", "Le fort portugais, aujourd'hui Musée d'histoire de Ouidah"], ["Avant d'appartenir au royaume du Dahomey, Ouidah était au cœur d'un autre royaume. Lequel ?", 'Le royaume Xwéda (Houéda)'], ['En fon, Ouidah s\'appelle Glexwé. Que veut dire ce nom ?', '« La maison des champs » (à confirmer avec le guide)'], ['Renewable Energy · Les bornes de recharge pour voitures électriques, c\'est quel pôle ?', 'Renewable Energy']] },
   { id: 'porte', lieu: 'Porte du Non-Retour', pole: 'Renewable Energy', jeu: 'Les miroirs', jen: 'The mirrors', secs: 600, final: true,
     regle: ["Sur l'esplanade, jamais au pied du monument. Un moment de silence d'abord.", "Des miroirs et des obstacles sont posés au sol. Plusieurs chemins existent, un seul mène le soleil jusqu'au capteur caché.", "Chaque équipe choisit son chemin. Celle qui trouve le bon gagne la pièce centrale de la tenture.", "Puis les pièces non trouvées sur le chemin se jouent."],
@@ -950,7 +955,7 @@ V2.carte = () => {
   const n = N(), L = steps2();
   const idx = id => L.findIndex(x => x.id === 'st:' + id);
   const stat = id => { const w = winner(id); return w === null ? `<span class="muted">${Lx('à jouer', 'to play')}</span>` : `${tdot(w)} ${tname(w)}`; };
-  const order = { zin: Lx('Pour tous en premier, en minibus', 'First for everyone, by minibus'), bas: Lx('Ordre libre, à pied', 'Free order, on foot'), maro: Lx('Ordre libre, à pied', 'Free order, on foot'), mus: Lx('Ordre libre, à pied', 'Free order, on foot'), porte: Lx('Pour tous en dernier, par la Route des Esclaves', 'Last for everyone, via the Slave Route') };
+  const order = { zin: Lx('Pour tous en premier, en minibus', 'First for everyone, by minibus'), bas: Lx('Ordre libre, à pied', 'Free order, on foot'), maro: Lx('Ordre libre, à pied', 'Free order, on foot'), mus: Lx('Dernière étape à pied : le bus attend devant le fort', 'Last stop on foot: the bus waits at the fort'), porte: Lx('Pour tous en dernier, par la Route des Esclaves', 'Last for everyone, via the Slave Route') };
   return `
   <p class="eyebrow">${Lx('La carte au trésor', 'The treasure map')}</p>
   <h2>${Lx('Cinq lieux, une tenture', 'Five places, one hanging')}</h2>
@@ -982,6 +987,7 @@ V2.st = id => {
     <div class="row">${TT.map(t => `<button class="btn small ${n.pc[mp.id] === t ? '' : 'ghost'} ${me === String(t) ? 'mine' : ''}" data-n2piece="${mp.id}:${t}">${Lx('Trouvée par', 'Found by')} ${tname(t)}</button>`).join('')}<button class="btn small ${n.pc[mp.id] === 'x' ? '' : 'ghost'}" data-n2piece="${mp.id}:x">${Lx('Non trouvée : à rejouer à la Porte', 'Not found: replayed at the Door')}</button></div></div>` : ''}
   ${s.final ? `<div class="card" style="margin-top:14px"><h3>${Lx('Les pièces non trouvées', 'The pieces not found')}</h3>
     ${lostMini().length ? lostMini().map(p => `<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:8px 0"><span>${p.lab}</span><span class="row">${TT.map(t => `<button class="btn small ${n.rp[p.id] === t ? '' : 'ghost'}" data-n2rp="${p.id}:${t}">${tname(t)}</button>`).join('')}</span></div>`).join('') : `<p class="muted" style="margin:0">${Lx('Toutes les pièces du chemin ont été trouvées.', 'Every piece along the way was found.')}</p>`}</div>` : ''}
+  ${s.q3 ? `<details class="card" id="q3-${id}" ${OPEN['q3-' + id] ? 'open' : ''} style="margin-top:14px"><summary><b>Les 3 questions du bus</b> <span class="muted">· pour le guide, ne pas projeter</span></summary><ol class="rules" style="margin-top:10px">${s.q3.map(([q, r]) => `<li><b>${q}</b><br><span class="muted">${r}</span></li>`).join('')}</ol></details>` : ''}
   ${s.mini.length ? `<details class="card" id="mini-${id}" ${OPEN['mini-' + id] ? 'open' : ''} style="margin-top:14px"><summary><b>Les 4 mini-jeux du chemin</b> <span class="muted">· ne pas projeter</span></summary>
     <p class="muted" style="font-size:12.5px;margin:8px 0">Une carte par mini-jeu, cachée sur le chemin. Réunies, les 4 cartes forment l'image de la station. L'une d'elles cache la pièce de tenture.</p>
     <ol style="margin:2px 0 0 18px;padding:0;font-size:13px">${s.mini.map(([q, a]) => `<li style="margin-bottom:4px">${q} <i class="muted">→ ${a}</i></li>`).join('')}</ol></details>` : ''}
@@ -1521,8 +1527,7 @@ function comps() {
 }
 function energy() {
   if (S.fin.open) return 100;
-  const quizOk = Object.values(S.quiz.ans).filter(a => a.ok).length;
-  let e = quizOk * 2;
+  let e = 0; Object.values(S.quiz.ans).forEach(a => { if (a.ok) e += 2; else if (a.rok) e += 1; });
   if (S.asc.done) e += S.asc.ok ? 12 : 4;
   S.metro.m.forEach(rd => rd.forEach(t => { if (t.ok === true) e += t.w.length; else if (t.ok === false) e += 1; }));
   e += Math.min(S.ligne.n * 2, 20);
@@ -1639,6 +1644,11 @@ function quizPair(qi) {
   }
   return qi % P.length;
 }
+function relaisPair(qi) {
+  const q = QUIZ[qi], P = S.pairs || [], me = quizPair(qi);
+  const c = P.map((_, j) => j).filter(j => j !== me && !P[j].some(i => S.players[i].country === q.c || S.players[i].nat === q.c || (q.s && pname(i) === q.s)));
+  return c.length ? c[Math.floor(Math.random() * c.length)] : null;
+}
 function teams() {
   const P = S.pairs;
   if (P && P.length) { const a = [], b = []; P.forEach((p, j) => (j % 2 === 0 ? a : b).push(...p)); return [a, b]; }
@@ -1649,7 +1659,7 @@ function points() {
   const pts = {}; active().forEach(p => pts[p.i] = 0);
   const add = (i, n = 1) => { if (pts[i] !== undefined) pts[i] += n; };
   const all = () => Object.keys(pts).forEach(i => add(+i));
-  Object.values(S.quiz.ans).forEach(a => { if (a.ok && a.who !== undefined && a.who !== null) add(a.who); });
+  Object.values(S.quiz.ans).forEach(a => { if ((a.ok || a.rok) && a.who !== undefined && a.who !== null) add(a.who); });
   if (S.asc.done) all();
   const TM = teams();
   S.metro.win.forEach(w => { if (w === 0 || w === 1) TM[w].forEach(i => add(i)); else if (w === 2) all(); });
@@ -1768,21 +1778,30 @@ V.quiz = () => {
   const dots = QUIZ.map((_, j) => `<i class="${S.quiz.ans[j] ? (S.quiz.ans[j].ok ? 'ok' : 'ko') : ''} ${j === i ? 'cur' : ''}"></i>`).join('');
   const okN = Object.values(S.quiz.ans).filter(a => a.ok).length;
   const L = 'ABCD';
+  const relOpen = ans && !ans.ok && ans.rp !== undefined && ans.rp !== null && ans.rc === undefined && !ans.rx;
+  const shown = ans && !relOpen;
   const opts = q.o.map((o, j) => {
     let cls = '';
-    if (ans) { if (j === q.a) cls = 'right'; else if (j === ans.c) cls = 'wrong'; }
-    return `<button class="opt ${cls}" data-ans="${j}" ${ans ? 'disabled' : ''}><span class="l">${L[j]}</span><span>${esc(o)}</span></button>`;
+    if (relOpen) { if (j === ans.c) cls = 'wrong'; }
+    else if (ans) { if (j === q.a) cls = 'right'; else if (j === ans.c || j === ans.rc) cls = 'wrong'; }
+    const dis = relOpen ? (j === ans.c ? 'disabled' : '') : (ans ? 'disabled' : '');
+    return `<button class="opt ${cls}" ${relOpen ? 'data-rans' : 'data-ans'}="${j}" ${dis}><span class="l">${L[j]}</span><span>${esc(o)}</span></button>`;
   }).join('');
+  const rpair = ans && ans.rp !== undefined && ans.rp !== null ? S.pairs[ans.rp] : null;
+  const relCard = relOpen ? `<div class="relais"><div class="rk">Relais !</div><div><b>Binôme ${PAIR_NAMES[ans.rp] || ans.rp + 1}</b> · ${rpair.map(label).join(' & ')}<br><span class="muted">10 secondes pour répondre. Bonne réponse : +1 kW.</span></div><button class="btn small ghost" data-rskip>Personne ne trouve : voir la réponse</button></div>` : '';
+  const finder = ans ? (ans.ok ? pair : ans.rok ? rpair : null) : null;
   return `
   <p class="eyebrow">Jeu 2 · Le quiz « Le réseau » · Composant : le panneau</p>
   <div class="qhead">
     <div class="row"><span class="chip sun">Binôme ${PAIR_NAMES[pj] || pj + 1}</span><span class="chip">${pair.map(label).join(' & ')}</span></div>
-    <div class="row"><span class="chip">${q.c === 'Groupe' ? 'Question groupe' : q.c === 'Parcours' ? 'Qui est-ce ?' : 'Pays : ' + esc(q.c)}</span><span class="chip">${i + 1} / ${QUIZ.length}</span></div>
+    <div class="row"><span class="chip">${q.c === 'Groupe' ? 'Question CFAO' : q.c === 'Parcours' ? 'Qui est-ce ?' : 'Pays : ' + esc(q.c)}</span><span class="chip">${i + 1} / ${QUIZ.length}</span></div>
   </div>
   <p class="question">${esc(q.q)}</p>
   <div class="opts">${opts}</div>
-  ${ans ? `<div class="explain"><b>${ans.ok ? 'Bonne réponse : +2 kW pour le village.' : 'Raté, mais le réseau tient bon.'}</b> ${esc(q.e)}</div><div class="row" style="margin-top:8px"><button class="btn small ghost" data-unans>Erreur de clic : effacer cette réponse</button></div>` : ''}
-  ${ans && ans.ok ? `<div class="card" style="margin-top:12px"><h3>Qui a trouvé ? <span class="muted" style="font-family:var(--font-body); font-weight:400; font-size:13px">+1 point</span></h3><div class="roles">${[...pair, ...active().map(p => p.i).filter(i => !pair.includes(i))].map(i => `<button class="role ${ans.who === i ? 'chef' : ''}" data-who="${i}">${label(i)}</button>`).join('')}</div></div>` : ''}
+  ${relCard}
+  ${shown ? `<div class="explain"><b>${ans.ok ? 'Bonne réponse : +2 kW pour le village.' : ans.rok ? 'Le relais a marché : +1 kW pour le village.' : 'Raté, mais le réseau tient bon.'}</b> ${esc(q.e)}</div>` : ''}
+  ${ans ? `<div class="row" style="margin-top:8px"><button class="btn small ghost" data-unans>Erreur de clic : effacer cette réponse</button></div>` : ''}
+  ${finder ? `<div class="card" style="margin-top:12px"><h3>Qui a trouvé ? <span class="muted" style="font-family:var(--font-body); font-weight:400; font-size:13px">+1 point</span></h3><div class="roles">${finder.map(i => `<button class="role ${ans.who === i ? 'chef' : ''}" data-who="${i}">${label(i)}</button>`).join('')}</div></div>` : ''}
   <div class="row" style="margin-top:16px; justify-content:space-between">
     <div class="dots" aria-label="${okN} bonnes réponses">${dots}</div>
     <div class="row">
@@ -1792,7 +1811,7 @@ V.quiz = () => {
     </div>
   </div>
   ${S.quiz.done ? `<div class="row" style="margin-top:16px">${nextBtn("Passer à l'ascenseur fou")}</div>` : ''}
-  ${notes(["Lis la question à voix haute. Le binôme désigné a 20 secondes pour répondre, puis tape sa réponse.", "La règle d'or : on n'interroge jamais quelqu'un sur son propre pays. L'appli choisit un binôme qui n'a personne du pays concerné.", "Pouvoirs utiles ici : NAGOT élimine deux réponses, FON annule une erreur (tape alors la bonne réponse), GOUN choisit le binôme, MINA relance la question.", "Le quiz se joue idéalement dans le véhicule. Tu peux terminer avant la fin si le trajet est court : le panneau est gagné dans tous les cas."])}`;
+  ${notes(["Lis la question à voix haute. Le binôme désigné a 20 secondes pour répondre, puis tape sa réponse.", "S'il se trompe, l'application tire au sort un autre binôme : c'est le relais. Il a 10 secondes, une seule tentative, et la bonne réponse rapporte +1 kW. La bonne réponse ne s'affiche qu'après.", "La règle d'or : on n'interroge jamais quelqu'un sur son propre pays. L'appli choisit un binôme qui n'a personne du pays concerné.", "Pouvoirs utiles ici : NAGOT élimine deux réponses, FON annule une erreur (tape alors la bonne réponse), GOUN choisit le binôme, MINA relance la question.", "Le quiz se joue idéalement dans le véhicule. Tu peux terminer avant la fin si le trajet est court : le panneau est gagné dans tous les cas."])}`;
 };
 
 V.asc = () => `
@@ -2012,7 +2031,9 @@ document.addEventListener('click', ev => {
   if (d.redo1 !== undefined) { if (!arm(t, 'Confirmer : effacer les résultats de ce jeu')) return; const F = fresh(), k = d.redo1; if (k === 'draw') { S.deck = null; S.pairs = null; S.turn = 0; S.lastReveal = null; S.players.forEach(p => { p.k = null; p.used = false; }); } else S[k] = F[k]; save(); return render(); }
   if (d.wipe !== undefined) { if (!arm(t, 'Confirmer : tout effacer')) return; if (d.wipe === '1') { const pl = S.players.map(p => ({ ...p, k: null, used: false })), n2 = S.n2; S = fresh(); S.players = pl; S.n2 = n2; S.level = 1; } else if (d.wipe === '2') { const pl = S.n2.players; S.n2 = fresh2(); S.n2.players = pl; S.level = 2; } else S = fresh(); save(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
   if (d.who !== undefined) { const a = S.quiz.ans[S.quiz.i]; if (a) { a.who = a.who === +d.who ? null : +d.who; save(); render(); } return; }
-  if (d.ans !== undefined) { const i = S.quiz.i; if (S.quiz.ans[i]) return; S.quiz.ans[i] = { c: +d.ans, ok: +d.ans === QUIZ[i].a }; save(); return render(); }
+  if (d.ans !== undefined) { const i = S.quiz.i; if (S.quiz.ans[i]) return; const ok = +d.ans === QUIZ[i].a; S.quiz.ans[i] = { c: +d.ans, ok }; if (!ok) S.quiz.ans[i].rp = relaisPair(i); save(); return render(); }
+  if (d.rans !== undefined) { const a = S.quiz.ans[S.quiz.i]; if (!a || a.rc !== undefined) return; a.rc = +d.rans; a.rok = +d.rans === QUIZ[S.quiz.i].a; save(); return render(); }
+  if (d.rskip !== undefined) { const a = S.quiz.ans[S.quiz.i]; if (a) { a.rx = true; save(); render(); } return; }
   if (d.q !== undefined) { S.quiz.i = Math.max(0, Math.min(QUIZ.length - 1, S.quiz.i + +d.q)); save(); return render(); }
   if (d.quizdone !== undefined) { S.quiz.done = !S.quiz.done; save(); return render(); }
   if (d.asc !== undefined) { S.asc = S.asc.done && S.asc.ok === (d.asc === '1') ? { done: false, ok: false } : { done: true, ok: d.asc === '1' }; save(); return render(); }
