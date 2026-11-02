@@ -940,7 +940,7 @@ V2.eq = () => {
   <p class="lead">${Lx("Chaque équipe suit sa carte au trésor. À chaque station, les deux équipes s'affrontent pour une pièce. D'autres pièces sont cachées dans les mini-jeux du chemin. À la Porte du Non-Retour, on assemble la tenture ensemble.", 'Each team follows its treasure map. At each station, both teams compete for a piece. More pieces are hidden in the mini-games along the way. At the Door of No Return, the hanging is assembled together.')}</p>
   <div class="tgrid" style="margin-top:14px">${(n.teams || [[], []]).map((tm, t) => `<div class="tcol" style="border-color:${TEAMS2[t].col}"><h3>${tdot(t)}${tname(t)}</h3>${tm.map(i => `<p>${esc(n.players[i].name)} <span class="muted">· ${esc(n.players[i].pays || '')}</span></p>`).join('')}</div>`).join('')}</div>
   <div class="row" style="margin-top:18px">${next2('Premier jeu : Ce que je sais de toi', 'First game: What I know about you')}</div>
-  ${notes(["Chaque équipe part avec son guide et ses deux accompagnateurs AWENI.", "Règles en 3 minutes maximum. Le reste s'explique à chaque station."])}`;
+  ${notes(["Chaque équipe part avec son guide et son animateur AWENI. Djihane circule entre les deux équipes et anime le final.", "Règles en 3 minutes maximum. Le reste s'explique à chaque station."])}`;
 };
 
 V2.savoir = () => {
@@ -1044,7 +1044,7 @@ V2.palm = () => {
   <div class="card stack" style="margin-top:14px"><h3>${Lx('Le podium', 'The podium')}</h3>${podium(pts2(), i => N().players[i].name, N().lang === 'en') || `<p class="muted" style="margin:0">${Lx('Pas encore de points.', 'No points yet.')}</p>`}</div>
   <div class="card stack" style="margin-top:14px"><h3>${Lx('Les badges', 'The badges')}</h3>${profiles(2)}</div>
   <div class="card stack" style="margin-top:14px"><h3>${Lx('Pour le débrief', 'For the debrief')}</h3><ul class="rules muted"><li>${Lx("Qu'est-ce qui vous a fait gagner, ou perdre, une pièce ?", 'What made you win, or lose, a piece?')}</li><li>${Lx('Pourquoi avez-vous donné, ou gardé ?', 'Why did you give, or keep?')}</li><li>${Lx('Où se joue cette coopération, entre nos pays et nos pôles, au quotidien ?', 'Where does this cooperation play out between our countries and business units, day to day?')}</li><li>${Lx("Laquelle des 4 valeurs du groupe, Entrepreneurship, Agility, Performance, Diversity, avez-vous vue à l'œuvre aujourd'hui ?", "Which of the group's 4 values, Entrepreneurship, Agility, Performance, Diversity, did you see at work today?")}</li></ul></div>
-  ${notes(["Une minute de parole par équipe, puis mot de M. Edem.", "Annonce le podium (3 noms seulement), puis remets les autocollants badges équipe par équipe.", "Remise des coffrets. Photo de groupe."])}`;
+  ${notes(["Une minute de parole par équipe, puis mot de M. Edem.", "Annonce le podium (3 noms seulement), puis remets les autocollants badges équipe par équipe.", "Remise des porte-clés Tassi Hangbé aux participants qui n'étaient pas à Cotonou. Photo de groupe."])}`;
 };
 
 /* ---------- events ---------- */
