@@ -626,15 +626,26 @@ async function syncStart() {
 }
 
 /* ================= BADGES · commun aux deux niveaux ================= */
-const BADGES = [
+const BADGES_ALL = [
   { id: 'cerveau', fr: 'Le Cerveau', en: 'The Brain', dfr: 'Trouve la solution et voit ce que les autres ratent.', den: 'Finds the answer and spots what others miss.', svg: '<path d="M11 4.5a3 3 0 0 0-5 1.8A3 3 0 0 0 3.8 11a3 3 0 0 0 1.2 4.6A3 3 0 0 0 8 19.5a3 3 0 0 0 3-1V4.5z"/><path d="M13 4.5a3 3 0 0 1 5 1.8 3 3 0 0 1 2.2 4.7 3 3 0 0 1-1.2 4.6 3 3 0 0 1-3 3.9 3 3 0 0 1-3-1V4.5z"/>' },
   { id: 'moteur', fr: 'Le Moteur', en: 'The Engine', dfr: 'Toujours le premier à se lancer.', den: 'Always the first to jump in.', svg: '<path d="M13 2L4.5 13.5H11L10 22l9-12h-6.5z"/>' },
   { id: 'phare', fr: 'Le Phare', en: 'The Lighthouse', dfr: 'Donne le cap et garde son calme quand ça chauffe.', den: 'Sets the course and stays calm under pressure.', svg: '<path d="M9 21l1.5-12h3L15 21zM8 21h8M10 5h4v4h-4zM12 2v3M5 6l-2-1M19 6l2-1"/>' },
   { id: 'etincelle', fr: "L'Étincelle", en: 'The Spark', dfr: 'Met la joie dans le groupe.', den: 'Brings the joy to the group.', svg: '<circle cx="12" cy="12" r="3.5"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l2.5 2.5M16.5 16.5L19 19M5 19l2.5-2.5M16.5 7.5L19 5"/>' },
   { id: 'pont', fr: 'Le Pont', en: 'The Bridge', dfr: 'Relie les autres et aide chacun à passer.', den: 'Connects people and helps everyone through.', svg: '<path d="M2 17h20M3 17v-3c4 0 5-5 9-5s5 5 9 5v3M8 17v-4M12 17V9M16 17v-4"/>' },
-  { id: 'socle', fr: 'Le Socle', en: 'The Cornerstone', dfr: 'Celui ou celle sur qui on peut compter.', den: 'The one you can always count on.', svg: '<rect x="3" y="14" width="8" height="6"/><rect x="13" y="14" width="8" height="6"/><rect x="8" y="7" width="8" height="6"/>' }
+  { id: 'socle', fr: 'Le Socle', en: 'The Cornerstone', dfr: 'Celui ou celle sur qui on peut compter.', den: 'The one you can always count on.', svg: '<rect x="3" y="14" width="8" height="6"/><rect x="13" y="14" width="8" height="6"/><rect x="8" y="7" width="8" height="6"/>' },
+  { id: 'dynamo', fr: 'La Dynamo', en: 'The Dynamo', dfr: 'Celui ou celle qui met tout le monde en mouvement.', den: 'Gets everyone moving.', svg: '<circle cx="12" cy="12" r="9"/><path d="M13 6l-4 7h4l-1 5 4-7h-4z"/>' },
+  { id: 'capteur', fr: 'Le Capteur', en: 'The Sensor', dfr: 'Celui ou celle qui observe et pose la question juste.', den: 'Observes and asks the right question.', svg: '<circle cx="12" cy="18" r="1.5"/><path d="M8.5 14.5a5 5 0 0 1 7 0M5.5 11.5a9 9 0 0 1 13 0M2.5 8.5a13 13 0 0 1 19 0"/>' },
+  { id: 'architecte', o: 2, fr: "L'Architecte", en: 'The Architect', dfr: 'Dessine la vision et trace la route pour tous.', den: 'Draws the vision and maps the way.', svg: '<circle cx="12" cy="4" r="1.6"/><path d="M11.3 5.5L6 21M12.7 5.5L18 21M8.2 15h7.6"/>' },
+  { id: 'batisseur', o: 2, fr: 'Le Bâtisseur', en: 'The Builder', dfr: 'Transforme une idée en résultat concret.', den: 'Turns an idea into results.', svg: '<path d="M12 3h7v5h-7zM15.5 8v13M9 5.5h3"/>' },
+  { id: 'passeur', o: 2, fr: 'Le Passeur', en: 'The Torchbearer', dfr: 'Transmet et fait grandir ceux qui l\'entourent.', den: 'Passes on and helps others grow.', svg: '<path d="M9 11h6l-2 10h-2zM12 3c2 2 3 3.2 3 5a3 3 0 0 1-6 0c0-1.8 1-3 3-5z"/>' },
+  { id: 'rassembleur', o: 2, fr: 'Le Rassembleur', en: 'The Unifier', dfr: 'Fédère et fait avancer tout le monde ensemble.', den: 'Brings everyone together and forward.', svg: '<circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="4.5" r="1.8"/><circle cx="5.5" cy="16" r="1.8"/><circle cx="18.5" cy="16" r="1.8"/>' },
+  { id: 'stratege', o: 2, fr: 'Le Stratège', en: 'The Strategist', dfr: 'A toujours un coup d\'avance.', den: 'Always one move ahead.', svg: '<path d="M7 21h10M8.5 21l1.2-7h4.6l1.2 7M9.5 14a3.2 3.2 0 1 1 5 0M12 3v4M10 5h4"/>' },
+  { id: 'gardien', o: 2, fr: 'Le Gardien', en: 'The Guardian', dfr: 'Protège l\'équipe et veille sur ses valeurs.', den: 'Protects the team and its values.', svg: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>' },
+  { id: 'griot', o: 2, fr: 'Le Griot', en: 'The Griot', dfr: 'Porte la parole et fait vivre l\'histoire.', den: 'Carries the word and keeps history alive.', svg: '<path d="M7 4h10l-2.2 8 2.2 8H7l2.2-8z"/><path d="M7 4c0 1.2 2.2 1.8 5 1.8S17 5.2 17 4M9.2 12h5.6"/>' },
+  { id: 'visionnaire', o: 2, fr: 'Le Visionnaire', en: 'The Visionary', dfr: 'Voit plus loin que l\'horizon.', den: 'Sees beyond the horizon.', svg: '<path d="M2 18h20M6 18a6 6 0 0 1 12 0M12 6v3M5.5 9.5l2 2M18.5 9.5l-2 2"/>' }
 ];
-const BMAP = Object.fromEntries(BADGES.map(b => [b.id, b]));
+const BMAP = Object.fromEntries(BADGES_ALL.map(b => [b.id, b]));
+const BL = lv => BADGES_ALL.filter(b => lv === 2 ? b.o === 2 : b.o !== 2);
 const bsvg = (b, cls = '') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${BMAP[b].svg}</svg>`;
 const freshB = () => ({ bp: {}, aw: {} });
 let BPM = false;            /* mode retrait des points de badge */
@@ -648,14 +659,15 @@ function bctx(lv) {
   }
   const n = N(); n.bdg = n.bdg || freshB();
   const tm = n.teams || [[], []];
-  const ok = i => n.players[i] && n.players[i].name.trim();
+  const daf = i => /\b(DAF|RAF)\b|financ/i.test((n.players[i] && n.players[i].fonction) || '');
+  const ok = i => n.players[i] && n.players[i].name.trim() && !daf(i);
   return { lv, st: n.bdg, ids: tm.flat().filter(ok), name: i => n.players[i].name, sub: i => n.players[i].pays || '', scope: i => tm.findIndex(t => t.includes(i)),
     groups: tm.map((ids, t) => ({ label: `${tdot(t)}${tname(t)}`, ids: ids.filter(ok) })), en: n.lang === 'en' };
 }
 const bl = (c, b) => c.en ? BMAP[b].en : BMAP[b].fr;
 const bd = (c, b) => c.en ? BMAP[b].den : BMAP[b].dfr;
 const bpts = (c, b, i) => c.st.bp[`${b}:${i}`] || 0;
-const bcap = (c, i) => Math.max(1, Math.ceil(c.ids.filter(j => c.scope(j) === c.scope(i)).length / BADGES.length));
+const bcap = (c, i) => Math.max(1, Math.ceil(c.ids.filter(j => c.scope(j) === c.scope(i)).length / BL(c.lv).length));
 const takenBy = (c, b, i) => { const o = c.ids.filter(j => j !== i && c.st.aw[j] === b && c.scope(j) === c.scope(i)); return o.length >= bcap(c, i) ? o[0] : undefined; };
 
 /* proposition automatique : meilleurs scores d'abord, un titre par personne, chaque titre réparti au plus équitablement dans le groupe */
@@ -663,11 +675,11 @@ function suggestB(c) {
   const aw = {}, used = {};
   const key = (i, b) => `${c.scope(i)}:${b}`;
   const cand = [];
-  c.ids.forEach(i => BADGES.forEach(b => { const v = bpts(c, b.id, i); if (v > 0) cand.push({ i, b: b.id, v }); }));
+  c.ids.forEach(i => BL(c.lv).forEach(b => { const v = bpts(c, b.id, i); if (v > 0) cand.push({ i, b: b.id, v }); }));
   cand.sort((a, b) => b.v - a.v || Math.random() - .5);
   const full = (i, b) => (used[key(i, b)] || 0) >= bcap(c, i);
   cand.forEach(x => { if (aw[x.i] === undefined && !full(x.i, x.b)) { aw[x.i] = x.b; used[key(x.i, x.b)] = (used[key(x.i, x.b)] || 0) + 1; } });
-  const pool = shuffle(BADGES.slice());
+  const pool = shuffle(BL(c.lv).slice());
   c.ids.forEach(i => { if (aw[i] !== undefined) return; const free = pool.slice().sort((a, b) => (used[key(i, a.id)] || 0) - (used[key(i, b.id)] || 0)).find(b => !full(i, b.id)); if (free) { aw[i] = free.id; used[key(i, free.id)] = (used[key(i, free.id)] || 0) + 1; } });
   c.st.aw = aw;
 }
@@ -678,8 +690,8 @@ function bpPanel(lv) {
   const id = 'bpd' + lv;
   return `<details class="card bpanel" id="${id}" ${OPEN[id] ? 'open' : ''} style="margin-top:16px"><summary><b>Points de badge</b> <span class="muted">· animateurs, à remplir pendant le jeu (ne pas projeter)</span></summary>
     <div class="row" style="margin:10px 0"><button class="btn small ${BPM ? '' : 'ghost'}" data-bpm>${BPM ? 'Mode retrait −1 actif' : 'Mode ajout +1'}</button><span class="muted" style="font-size:12.5px">Touchez une case quand un joueur montre ce trait.</span></div>
-    <div style="overflow-x:auto"><table class="bpt"><tr><th></th>${BADGES.map(b => `<th title="${esc(b.fr)} : ${esc(b.dfr)}">${bsvg(b.id)}<br><span>${b.fr.replace(/^(Le |La |L')/, '')}</span></th>`).join('')}</tr>
-    ${c.ids.map(i => `<tr><td>${esc(c.name(i))}</td>${BADGES.map(b => { const v = bpts(c, b.id, i); return `<td><button class="${v ? 'has' : ''}" data-bp="${lv}:${b.id}:${i}" aria-label="${esc(b.fr)} pour ${esc(c.name(i))}">${v || '·'}</button></td>`; }).join('')}</tr>`).join('')}</table></div></details>`;
+    <div style="overflow-x:auto"><table class="bpt"><tr><th></th>${BL(c.lv).map(b => `<th title="${esc(b.fr)} : ${esc(b.dfr)}">${bsvg(b.id)}<br><span>${b.fr.replace(/^(Le |La |L')/, '')}</span></th>`).join('')}</tr>
+    ${c.ids.map(i => `<tr><td>${esc(c.name(i))}</td>${BL(c.lv).map(b => { const v = bpts(c, b.id, i); return `<td><button class="${v ? 'has' : ''}" data-bp="${lv}:${b.id}:${i}" aria-label="${esc(b.fr)} pour ${esc(c.name(i))}">${v || '·'}</button></td>`; }).join('')}</tr>`).join('')}</table></div></details>`;
 }
 
 /* écran de vote */
@@ -687,22 +699,22 @@ function badgeStep(lv, nextHTML) {
   const c = bctx(lv), T = (fr, en) => c.en ? en : fr;
   const any = c.ids.some(i => c.st.aw[i]);
   const legend = lv === 1
-    ? `<div class="bgrid">${BADGES.map(b => { const who = c.ids.filter(i => c.st.aw[i] === b.id); return `<div class="bdg ${who.length ? '' : 'none'}"><div class="ic">${bsvg(b.id)}</div><b>${bl(c, b.id)}</b><span>${bd(c, b.id)}</span>${who.length ? `<span class="p">${who.map(i => esc(c.name(i))).join(', ')}</span>` : ''}</div>`; }).join('')}</div>`
-    : `<div class="bgrid">${BADGES.map(b => `<div class="bdg"><div class="ic">${bsvg(b.id)}</div><b>${bl(c, b.id)}</b><span>${bd(c, b.id)}</span></div>`).join('')}</div>`;
+    ? `<div class="bgrid">${BL(c.lv).map(b => { const who = c.ids.filter(i => c.st.aw[i] === b.id); return `<div class="bdg ${who.length ? '' : 'none'}"><div class="ic">${bsvg(b.id)}</div><b>${bl(c, b.id)}</b><span>${bd(c, b.id)}</span>${who.length ? `<span class="p">${who.map(i => esc(c.name(i))).join(', ')}</span>` : ''}</div>`; }).join('')}</div>`
+    : `<div class="bgrid">${BL(c.lv).map(b => `<div class="bdg"><div class="ic">${bsvg(b.id)}</div><b>${bl(c, b.id)}</b><span>${bd(c, b.id)}</span></div>`).join('')}</div>`;
   const rows = c.groups.filter(g => g.ids.length).map(g => `${g.label ? `<h3 class="pill2" style="margin:16px 0 4px;font-size:15px">${g.label}</h3>` : ''}
-    ${g.ids.map(i => { const top = BADGES.map(b => ({ b: b.id, v: bpts(c, b.id, i) })).filter(x => x.v).sort((a, b) => b.v - a.v).slice(0, 3);
+    ${g.ids.map(i => { const top = BL(c.lv).map(b => ({ b: b.id, v: bpts(c, b.id, i) })).filter(x => x.v).sort((a, b) => b.v - a.v).slice(0, 3);
       return `<div class="brow"><div><b>${esc(c.name(i))}</b><br><span class="muted" style="font-size:12px">${c.st.aw[i] ? bl(c, c.st.aw[i]) : T('sans badge', 'no badge yet')}${top.length ? ' · ' + T('points', 'points') + ' : ' + top.map(x => `${bl(c, x.b)} ${x.v}`).join(', ') : ''}</span></div>
-      <div class="bpick">${BADGES.map(b => { const tk = takenBy(c, b.id, i); return `<button class="${c.st.aw[i] === b.id ? 'on' : ''}" data-baw="${lv}:${i}:${b.id}" title="${esc(bl(c, b.id))}${tk !== undefined ? ' · ' + esc(c.name(tk)) : ''}" ${tk !== undefined ? 'disabled' : ''}>${bsvg(b.id)}</button>`; }).join('')}</div></div>`; }).join('')}`).join('');
+      <div class="bpick">${BL(c.lv).map(b => { const tk = takenBy(c, b.id, i); return `<button class="${c.st.aw[i] === b.id ? 'on' : ''}" data-baw="${lv}:${i}:${b.id}" title="${esc(bl(c, b.id))}${tk !== undefined ? ' · ' + esc(c.name(tk)) : ''}" ${tk !== undefined ? 'disabled' : ''}>${bsvg(b.id)}</button>`; }).join('')}</div></div>`; }).join('')}`).join('');
   return `
   <p class="eyebrow">${T('Les badges', 'The badges')}</p>
   <h2>${T('Chacun repart avec un titre', 'Everyone leaves with a title')}</h2>
-  <p class="lead">${lv === 1 ? T("Six titres, un par joueur, deux joueurs au plus par titre. Les animateurs proposent, le groupe vote à main levée. Si la majorité choisit quelqu'un d'autre, c'est le groupe qui a le dernier mot.", '') : T("Chaque équipe décerne un badge à chacun de ses membres. Les animateurs proposent, l'équipe confirme ou change, en même temps dans les 2 équipes. Les badges sont remis en autocollants.", 'Each team gives one badge to each of its members. The hosts propose, the team confirms or changes it, both teams at once. Badges are handed out as stickers.')}</p>
+  <p class="lead">${lv === 1 ? T("Six titres, plus deux profils spéciaux (la Dynamo, le Capteur), un par joueur. Les animateurs proposent, le groupe vote à main levée. Si la majorité choisit quelqu'un d'autre, c'est le groupe qui a le dernier mot.", '') : T("Huit titres de Ouidah, réservés aux directeurs : un par personne. Les directeurs financiers gardent leur titre de Cotonou. Les animateurs proposent, l'équipe confirme ou change. Les titres sont remis en autocollants.", 'Each team gives one badge to each of its members. The hosts propose, the team confirms or changes it, both teams at once. Badges are handed out as stickers.')}</p>
   <div style="margin-top:14px">${legend}</div>
   <div class="card" style="margin-top:16px"><div class="row" style="justify-content:space-between"><h3 style="margin:0">${T('Attribution', 'Assignment')}</h3><div class="row"><button class="btn small" data-bsug="${lv}">${T('Proposition des animateurs', "Hosts' proposal")}</button>${any ? `<button class="btn small ghost" data-bclr="${lv}">${T('Tout effacer', 'Clear all')}</button>` : ''}</div></div>
   ${rows || `<p class="muted">${T("Inscrivez d'abord les joueurs.", 'Register the players first.')}</p>`}</div>
   <div class="row" style="margin-top:18px">${nextHTML}</div>
   ${notes(lv === 1 ? ["Touche « Proposition des animateurs » : l'app répartit les 6 titres d'après les points donnés pendant les jeux : un par personne, deux personnes au plus par titre.", "Pour chaque badge, annonce le nom proposé et demande : « Qui est d'accord ? ». Si la salle désigne quelqu'un d'autre, touche ce badge sur sa ligne. Un badge déjà pris est grisé : libère-le d'abord.", "Environ 10 minutes. Remets le badge physique au moment de l'annonce."]
-    : ["Touche « Proposition des animateurs » avant de lancer le vote : chaque membre reçoit un titre, deux membres au plus par titre dans une équipe.", "Un animateur par équipe annonce les propositions. L'équipe valide ou échange. 5 minutes, les deux équipes en même temps.", "On n'affiche jamais de classement complet des joueurs : seulement le podium et les badges."])}`;
+    : ["Touche « Proposition des animateurs » avant de lancer le vote : chaque directeur reçoit un titre.", "Les DAF n'apparaissent pas ici : l'application les reconnaît si leur fonction contient DAF, RAF ou « financier » (onglet Préparation). Vérifie-le avant le vote.", "Un animateur par équipe annonce les propositions. L'équipe valide ou échange. 5 minutes, les deux équipes en même temps.", "On n'affiche jamais de classement complet des joueurs : seulement le podium et les badges."])}`;
 }
 
 /* profils et podium */
