@@ -730,7 +730,8 @@ const MOS = {"CW": 168, "CH": 112, "G": 14, "X0": 46, "Y0": 62, "amaz": "<g tran
 const CODE2 = '6234';
 const TEAMS2 = [
   { id: 'Soleil', fr: 'Soleil', en: 'Sun', col: '#E8B630' },
-  { id: 'Lagune', fr: 'Lagune', en: 'Lagoon', col: '#3F86D6' }
+  { id: 'Lagune', fr: 'Lagune', en: 'Lagoon', col: '#3F86D6' },
+  { id: 'Tous', fr: 'Tous ensemble', en: 'All together', col: '#FBBC04' }
 ];
 const TT = [0, 1];
 /* Les stations, dans l'ordre du parcours. Les mini-jeux : 3 indices culturels + 1 question pôle par station. */
@@ -752,8 +753,8 @@ const ST2 = [
     regle: ["Pas de visite : on reste devant le fort. Le guide raconte son histoire en 3 minutes, et l'équipe joue ses 4 cartes mini-jeux.", "C'est la dernière étape à pied pour les deux équipes : le bus attend devant le fort.", "En bus vers la Porte, sans descendre : le bus ralentit devant la place Chacha, puis devant l'Arbre de l'Oubli. Le guide raconte.", "Entre l'Arbre de l'Oubli et la Porte, le guide pose 3 questions, une par lieu. Chaque équipe écrit ses réponses. Celle qui a le plus de bonnes réponses gagne la pièce de la tenture. En cas d'égalité, question subsidiaire."],
     q3: [["Le fort · Pourquoi les Portugais ont-ils construit ce fort ?", "Pour protéger leur comptoir de commerce, dont la traite des captifs (à confirmer avec le guide)"], ["La place Chacha · Que se passait-il sur cette place ?", "Les captifs y étaient vendus aux enchères"], ["L'Arbre de l'Oubli · Combien de fois les hommes tournaient-ils autour de l'arbre ?", "9 fois (les femmes 7 fois), pour oublier leur origine"], ["Question subsidiaire · Comment s'appelait le marchand surnommé « Chacha » ?", "Francisco Félix de Souza"]],
     mini: [["Je suis un fort construit par les Portugais en 1721, et je suis resté portugais jusqu'en 1961. Qui suis-je ?", "Le fort portugais, aujourd'hui Musée d'histoire de Ouidah"], ["Avant d'appartenir au royaume du Dahomey, Ouidah était au cœur d'un autre royaume. Lequel ?", 'Le royaume Xwéda (Houéda)'], ['En fon, Ouidah s\'appelle Glexwé. Que veut dire ce nom ?', '« La maison des champs » (à confirmer avec le guide)'], ['Renewable Energy · Les bornes de recharge pour voitures électriques, c\'est quel pôle ?', 'Renewable Energy']] },
-  { id: 'porte', lieu: 'Porte du Non-Retour', pole: 'Renewable Energy', jeu: 'Le Métronome', jen: 'The Metronome', secs: 600, final: true,
-    regle: ["Un moment de silence devant la Porte, avec le guide. Ensuite seulement, on rejoint l'esplanade, à distance du monument.", "Chaque équipe monte sur sa paire de planches, les pieds dans les passants, et doit franchir la ligne d'arrivée sans poser le pied au sol.", "Les directeurs financiers ont joué le Métronome à Cotonou : ce sont eux qui donnent le rythme à leur équipe.", "Si les planches ne portent pas toute l'équipe, on joue en deux vagues : l'équipe dont les deux vagues arrivent les premières gagne.", "L'équipe gagnante remporte la pièce centrale de la tenture. Puis les pièces non trouvées se jouent, et le Pacte."],
+  { id: 'porte', lieu: 'Porte du Non-Retour', pole: 'Renewable Energy', jeu: 'Le circuit, tous ensemble', jen: 'The circuit, all together', secs: 480, final: true, coll: true,
+    regle: ["Un moment de silence devant la Porte, avec le guide. Ensuite seulement, on rejoint l'esplanade, à distance du monument.", "Les deux équipes forment un seul grand cercle et se tiennent la main. Le cerceau, c'est le courant : il doit faire tout le tour du cercle sans que personne ne lâche les mains.", "1er essai : un cerceau, on chronomètre. Puis 30 secondes pour décider d'une stratégie.", "Le défi : battre ce temps d'au moins 20 %.", "La finale : deux cerceaux lancés en sens inverse, qui doivent se croiser et revenir au départ.", "Si le groupe réussit, la pièce centrale de la tenture est gagnée par tous. C'est le seul point gagné collectivement. Puis le Pacte."],
     mini: [] }
 ];
 const STMAP = Object.fromEntries(ST2.map(s => [s.id, s]));
@@ -806,13 +807,13 @@ function teamPts(t) {
   const n = N(); if (!n.open) return 0;
   let s = n.bonus ? 2 : 0;
   s += qOk(t);
-  ST2.forEach(st => { const w = winner(st.id); if (w !== null) s += w === t ? 4 : 3; if (firstArr(st.id) === t) s += 1; });
+  ST2.forEach(st => { const w = winner(st.id); if (w !== null) s += (w === t || w === 2) ? 4 : 3; if (firstArr(st.id) === t) s += 1; });
   PIECES.filter(p => p.mini).forEach(p => { if (pieceOwner(p) === t) s += 2; });
   return s;
 }
-function pts2() { const n = N(), o = {}; (n.teams || []).forEach((tm, t) => tm.forEach(i => { if (n.players[i] && n.players[i].name.trim()) o[i] = (n.open ? 1 : 0) + qOk(t) + ST2.filter(st => winner(st.id) === t).length + ((n.pb || {})[i] || 0); })); return o; }
+function pts2() { const n = N(), o = {}; (n.teams || []).forEach((tm, t) => tm.forEach(i => { if (n.players[i] && n.players[i].name.trim()) o[i] = (n.open ? 1 : 0) + qOk(t) + ST2.filter(st => winner(st.id) === t || winner(st.id) === 2).length + ((n.pb || {})[i] || 0); })); return o; }
 function given(t) { return N().votes[t] === 'give'; }
-function litTeams() { if (!N().lit) return []; const l = TT.filter(given); if (N().flam !== null && !l.includes(N().flam)) l.push(N().flam); return l; }
+function litTeams() { if (!N().lit) return []; const l = TT.filter(given); l.push(2); if (N().flam !== null && !l.includes(N().flam)) l.push(N().flam); return l; }
 
 /* ---------- la tenture (version digitale) ---------- */
 function motif(k, x, y, w, h, c) {
@@ -985,8 +986,8 @@ V2.st = id => {
     <div class="row">${TT.map(t => { const v = ((n.vis || {})[id] || [])[t]; return `<button class="btn small ${v ? '' : 'ghost'} ${me === String(t) ? 'mine' : ''}" data-n2vis="${id}:${t}">${tdot(t)} ${tname(t)} ${v ? '· arrivée ✓' : '· est arrivée'}</button>`; }).join('')}</div>
     ${firstArr(id) !== null ? `<p class="muted" style="margin:8px 0 0;font-size:13px">${tname(firstArr(id))} est arrivée en premier : +1 point.</p>` : ''}</div>
   <div class="card" style="margin-top:14px"><h3>${Lx('Qui gagne la pièce', 'Who wins the piece')} « ${PIECES.find(p => p.st === id).lab} » ?</h3>
-    <div class="row">${TT.map(t => `<button class="btn ${w === t ? '' : 'ghost'} ${me === String(t) ? 'mine' : ''}" data-n2res="${id}:${t}">${tdot(t)} ${tname(t)}</button>`).join('')}</div>
-    <p class="muted" style="margin:8px 0 0;font-size:13px">${w === null ? Lx('Pas encore de résultat. Un second clic efface le résultat.', 'No result yet. A second click clears it.') : Lx(`${tname(w)} gagne la pièce et 4 points, ${tname(other(w))} marque 3 points.`, `${tname(w)} wins the piece and 4 points, ${tname(other(w))} scores 3 points.`)}</p></div>
+    <div class="row">${s.coll ? `<button class="btn ${w === 2 ? '' : 'ghost'}" data-n2res="${id}:2">${tdot(2)} ${Lx('Le groupe a réussi le circuit', 'The group completed the circuit')}</button>` : TT.map(t => `<button class="btn ${w === t ? '' : 'ghost'} ${me === String(t) ? 'mine' : ''}" data-n2res="${id}:${t}">${tdot(t)} ${tname(t)}</button>`).join('')}</div>
+    <p class="muted" style="margin:8px 0 0;font-size:13px">${w === null ? Lx('Pas encore de résultat. Un second clic efface le résultat.', 'No result yet. A second click clears it.') : (w === 2 ? Lx('Pièce gagnée par tous : 4 points pour chaque équipe.', 'Piece won by all: 4 points for each team.') : Lx(`${tname(w)} gagne la pièce et 4 points, ${tname(other(w))} marque 3 points.`, `${tname(w)} wins the piece and 4 points, ${tname(other(w))} scores 3 points.`))}</p></div>
   ${mp ? `<div class="card" style="margin-top:14px"><h3>${Lx('La pièce cachée sur le chemin', 'The piece hidden along the way')} · ${mp.lab}</h3>
     <div class="row">${TT.map(t => `<button class="btn small ${n.pc[mp.id] === t ? '' : 'ghost'} ${me === String(t) ? 'mine' : ''}" data-n2piece="${mp.id}:${t}">${Lx('Trouvée par', 'Found by')} ${tname(t)}</button>`).join('')}<button class="btn small ${n.pc[mp.id] === 'x' ? '' : 'ghost'}" data-n2piece="${mp.id}:x">${Lx('Non trouvée : à rejouer à la Porte', 'Not found: replayed at the Door')}</button></div></div>` : ''}
   ${s.final ? `<div class="card" style="margin-top:14px"><h3>${Lx('Les pièces non trouvées', 'The pieces not found')}</h3>
@@ -997,7 +998,7 @@ V2.st = id => {
     <p class="muted" style="font-size:12.5px;margin:8px 0">Une carte par mini-jeu, cachée sur le chemin. Réunies, les 4 cartes forment l'image de la station. L'une d'elles cache la pièce de tenture.</p>
     <ol style="margin:2px 0 0 18px;padding:0;font-size:13px">${s.mini.map(([q, a]) => `<li style="margin-bottom:4px">${q} <i class="muted">→ ${a}</i></li>`).join('')}</ol></details>` : ''}
   <div class="row" style="margin-top:18px">${s.final ? next2('Le Pacte', 'The Pact') : `<button class="btn" data-go="${steps2().findIndex(x => x.id === 'carte')}">${Lx('Retour à la carte', 'Back to the map')}</button>`}${redo2('st:' + id)}</div>
-  ${notes(s.final ? ["Arrivée en silence. Le guide raconte la Porte, puis on passe sur l'esplanade.", "Le Métronome d'abord, en une manche, puis les pièces non trouvées, puis le Pacte et la tenture."] : ["Les deux équipes jouent la station en même temps : c'est un duel.", "Les accompagnateurs AWENI de chaque équipe valident sur leur téléphone. Un second clic sur un bouton efface le choix.", "Le guide raconte le lieu avant le jeu."])}`;
+  ${notes(s.final ? ["Arrivée en silence. Le guide raconte la Porte, puis on passe sur l'esplanade.", "Les pièces non trouvées d'abord (en duel), puis le circuit tous ensemble, puis le Pacte et la tenture."] : ["Les deux équipes jouent la station en même temps : c'est un duel.", "Les accompagnateurs AWENI de chaque équipe valident sur leur téléphone. Un second clic sur un bouton efface le choix.", "Le guide raconte le lieu avant le jeu."])}`;
 };
 
 V2.pacte = () => {
