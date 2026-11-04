@@ -922,7 +922,7 @@ V2.flam = () => {
   return `
   <p class="eyebrow">${Lx('Niveau 2 · Le Flambeau', 'Level 2 · The Torch')}</p>
   <h2>${n.open ? Lx('Niveau 2 débloqué', 'Level 2 unlocked') : Lx("Hier, le village s'est allumé. Ce soir, la ville.", 'Yesterday the village lit up. Tonight, the city.')}</h2>
-  <p class="lead">${n.open ? Lx('Les cartes au trésor sont ouvertes. La tenture attend ses 9 pièces.', 'The treasure maps are open. The hanging awaits its 9 pieces.') : Lx("Les directeurs financiers détiennent les cartes Flambeau de Cotonou. Chaque carte cache un chiffre. Le Flambeau donne l'ordre.", 'The finance directors hold the Torch cards from Cotonou. Each card hides a digit. The Torch gives the order.')}</p>
+  <p class="lead">${n.open ? Lx('Les cartes au trésor sont ouvertes. La tenture attend ses 9 pièces.', 'The treasure maps are open. The hanging awaits its 9 pieces.') : Lx("Les directeurs financiers connaissent les réponses, mais ils n'ont pas le droit de les dire. Ils racontent Cotonou ; c'est à la direction de trouver les 4 chiffres.", 'The finance directors know the answers but may not say them. They tell the story of Cotonou; the leadership must find the 4 digits.')}</p>
   <div class="card lock">
     <h3 style="margin:0">${Lx('Le code de la ville', 'The city code')}</h3>
     <div class="code ${n.open ? 'good' : ''}" id="code2">${[0, 1, 2, 3].map(j => `<input id="c2${j}" data-c2="${j}" inputmode="numeric" maxlength="1" aria-label="Chiffre ${j + 1}" value="${n.open ? CODE2[j] : ''}" ${n.open ? 'disabled' : ''}>`).join('')}</div>
@@ -930,7 +930,7 @@ V2.flam = () => {
     ${n.open ? next2('Voir les équipes', 'See the teams') : `<button class="btn" data-try2>${Lx('Allumer le Flambeau', 'Light the Torch')}</button>`}
   </div>
   ${n.open ? `<div class="row" style="margin-top:12px">${redo2('flam', 'Reverrouiller (répétition)')}</div>` : ''}
-  ${notes(["Les deux porteurs du Flambeau entrent avec la carte. Les DAF lisent les questions de leurs cartes et y répondent devant tous.", "Code : 6234 (6 filiales, 2 de 1852, 3 manches, 4 pôles). Ordre : panneau, batterie, onduleur, câble.", "Trouvé en 3 essais ou moins : +2 points pour chaque équipe.", "En cas de blocage total : <button class=\"btn small ghost\" data-n2force>Débloquer sans bonus</button>"])}`;
+  ${notes(["Les deux porteurs du Flambeau entrent avec la lampe. Chaque DAF lit sa carte, mais ce sont les DG et les directeurs d'activité qui répondent.", "Les DAF peuvent raconter Cotonou pour aider, sans jamais dire ni montrer le chiffre. Préviens-les discrètement avant de commencer.", "Code : 6234 (6 filiales, 2 de 1852, 3 manches, 4 pôles). Ordre : panneau, batterie, onduleur, câble.", "Trouvé en 3 essais ou moins : +2 points pour chaque équipe.", "En cas de blocage total : <button class=\"btn small ghost\" data-n2force>Débloquer sans bonus</button>"])}`;
 };
 
 V2.eq = () => {
