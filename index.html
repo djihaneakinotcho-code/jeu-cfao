@@ -370,6 +370,14 @@ details.notes ul { margin: 8px 0 2px; padding-left: 18px; color: var(--muted); f
 .pbar { height: 10px; border-radius: 6px; background: var(--panel-2); overflow: hidden; margin-top: 10px; } .pbar i { display: block; height: 100%; background: var(--sun); }
 .prow2 { grid-template-columns: 24px minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1.2fr) !important; }
 
+.bmrow { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.bmsw { display:flex; align-items:center; gap:6px; padding:6px 9px; border-radius:10px; background:rgba(255,255,255,.05); font-size:13px; }
+.bmsw i { width:18px; height:18px; border-radius:50%; display:inline-block; border:1px solid rgba(255,255,255,.3); }
+.bmsw b { color:#FBBC04; }
+.bmhold { user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; touch-action:none; border:1px dashed #FBBC04; border-radius:12px; padding:14px; text-align:center; }
+.bmhold .bmshow { display:none; } .bmhold.show .bmshow { display:block; } .bmhold.show .bmmask { display:none; }
+.bmhold .bmmask { font-weight:700; color:#FBBC04; padding:18px 0; }
+
 .relais { display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-top:12px; padding:12px 14px; border-radius:12px; background:rgba(251,188,4,.12); border:1px solid rgba(251,188,4,.5); animation:relin .5s ease-out; }
 .relais .rk { font-family:var(--font-display); font-weight:800; font-size:20px; color:#FBBC04; animation:relpulse 1.2s ease-in-out 2; }
 @keyframes relin { from { opacity:0; transform:translateY(-6px) scale(.98); } to { opacity:1; transform:none; } }
@@ -746,6 +754,32 @@ const TEAMS2 = [
   { id: 'Tous', fr: 'Tous ensemble', en: 'All together', col: '#FBBC04' }
 ];
 const TT = [0, 1];
+/* Bottle Match : combinaisons des manches (indices des 6 couleurs), aucune couleur à la même place d'une manche à l'autre */
+const BMC = [[0, 1, 2, 3, 4, 5], [2, 4, 0, 5, 1, 3], [4, 3, 5, 1, 0, 2], [5, 2, 1, 4, 3, 0]];
+const BMDEF = ['Rouge', 'Jaune', 'Bleu', 'Vert', 'Orange', 'Violet'];
+const BMHEX = { rouge: '#D93A2B', jaune: '#FBBC04', bleu: '#2F6FD6', vert: '#2E9E5B', orange: '#F07C1E', violet: '#7A4FC4', rose: '#E86AA6', noir: '#141414', blanc: '#F5F1E8', marron: '#8B5A2B', gris: '#9A9A9A', turquoise: '#1FB5B0', beige: '#E3C9A0', bordeaux: '#7D1E2C' };
+const BM = () => { const n = N(); n.bm = n.bm || { r: 0, g: {}, w: {} }; return n.bm; };
+const bmCols = () => { const c = (N().bmc || BMDEF).slice(0, 6); while (c.length < 6) c.push(BMDEF[c.length]); return c; };
+const bmHex = c => BMHEX[String(c).trim().toLowerCase()] || '#777';
+const bmWins = t => Object.values(BM().w).filter(x => x === t).length;
+function bmCombo(r) { const c = bmCols(); return BMC[r].map(k => c[k]); }
+function bmSwatches(r) { return `<div class="bmrow">${bmCombo(r).map((c, k) => `<span class="bmsw"><i style="background:${bmHex(c)}"></i><b>${k + 1}</b>${esc(c)}</span>`).join('')}</div>`; }
+function bmCard(id) {
+  if (id !== 'bas') return '';
+  const n = N(), b = BM(), r = b.r, tm = n.teams || [[], []], nm = i => (n.players[i] && n.players[i].name) || '?';
+  const g = b.g[r] || [null, null], done = b.w[r] !== undefined;
+  return `<div class="card" style="margin-top:14px"><h3>Les manches · le gardien du code</h3>
+    <p class="muted" style="margin:0 0 10px;font-size:13px">À chaque manche, chaque équipe désigne son gardien du code. Il reçoit la combinaison sur son téléphone (onglet Carte), se place devant le tiroir et ne répond que par oui ou non. La première équipe qui trouve gagne la manche.</p>
+    <div class="row" style="margin-bottom:10px">${[0, 1, 2, 3].map(k => `<button class="btn small ${k === r ? '' : 'ghost'}" data-n2bmr="${k}">${k < 3 ? 'Manche ' + (k + 1) : 'Bonus'}${b.w[k] !== undefined ? ' ✓' : ''}</button>`).join('')}</div>
+    ${TT.map(t => `<div style="margin:8px 0"><b class="pill2">${tdot(t)}${tname(t)}</b> <span class="muted" style="font-size:13px">· gardien : ${g[t] !== null && g[t] !== undefined ? esc(nm(g[t])) : 'à désigner'}</span>
+      <div class="row" style="margin-top:6px">${(tm[t] || []).filter(i => n.players[i] && n.players[i].name.trim()).map(i => `<button class="btn small ${g[t] === i ? '' : 'ghost'}" data-n2bmg="${r}:${t}:${i}">${esc(nm(i))}</button>`).join('')}</div></div>`).join('')}
+    <div class="row" style="margin-top:10px"><span class="muted" style="font-size:13px">Gagnante de la manche :</span>${TT.map(t => `<button class="btn small ${b.w[r] === t ? '' : 'ghost'}" data-n2bmw="${r}:${t}">${tdot(t)} ${tname(t)}</button>`).join('')}</div>
+    <p class="muted" style="margin:8px 0 0;font-size:13px">Manches gagnées : ${TT.map(t => `${tname(t)} ${bmWins(t)}`).join(' · ')}. ${done ? 'Passez à la manche suivante.' : ''} La première équipe à 2 manches gagne la station.</p>
+    <details style="margin-top:10px"><summary class="muted">Vérifier la combinaison de cette manche (ne pas montrer)</summary>${bmSwatches(r)}</details>
+    <details style="margin-top:6px"><summary class="muted">Les couleurs des palettes</summary><p class="muted" style="font-size:12.5px;margin:6px 0">Les 6 couleurs, séparées par des virgules, dans l'ordre de votre choix.</p><input data-n2bmc value="${esc(bmCols().join(', '))}" style="width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:inherit"></details>
+  </div>`;
+}
+
 /* Les stations, dans l'ordre du parcours. Les mini-jeux : 3 indices culturels + 1 question pôle par station. */
 const ST2 = [
   { id: 'zin', lieu: 'Fondation Zinsou', pole: 'Office Services', jeu: "L'œuvre en fragments", jen: 'The scattered artwork', secs: 600,
@@ -756,7 +790,7 @@ const ST2 = [
       lien: "L'une imagine le retour des ancêtres vers leur terre d'origine. L'autre parle des cultures qui ont traversé l'océan et continué de vivre ailleurs. Une même question : comment transmettre ce que l'histoire a tenté de séparer ? Gardez-la en tête jusqu'à la Porte du Non-Retour." },
     mini: [['Je suis une maison de 1922, de style afro-brésilien, et mon nom est écrit sur ma façade. Qui suis-je ?', 'La Villa Ajavon, musée de la Fondation Zinsou'], ["Dans mes salles, pas d'objets anciens : des œuvres d'artistes africains d'aujourd'hui. Quel musée suis-je ?", "Un musée d'art contemporain"], ['Quelle famille béninoise a créé cette fondation, d\'abord à Cotonou ?', 'La famille Zinsou'], ['Office Services · Comment le client paie-t-il le printing ?', 'Au coût copie : selon le nombre de copies']] },
   { id: 'bas', lieu: 'Place de la basilique', pole: 'Energy Services', jeu: 'Le bon ordre (Bottle Match)', jen: 'The right order (Bottle Match)', secs: 480,
-    regle: ["Chaque équipe a deux jeux identiques de palettes de couleur : le premier forme une combinaison cachée, que seuls les coéquipiers voient ; le second est à placer dans le même ordre.", "Un joueur place les couleurs dans l'ordre qu'il pense être le bon. Ses coéquipiers ne répondent que par oui ou par non, comme un courant qui passe ou ne passe pas.", "Au premier « non », le joueur suivant prend sa place.", "Première équipe à trouver la combinaison : 4 points et la pièce de la tenture. Seconde : 3 points."],
+    regle: ["Chaque équipe a son meuble et son jeu de 6 palettes. Les deux équipes jouent en même temps, sur la même combinaison.", "À chaque manche, l'équipe désigne son gardien du code : il reçoit la combinaison sur son téléphone, se place devant le tiroir et ne répond que par oui ou par non.", "Un joueur place les palettes. Au premier « non », le joueur suivant prend sa place.", "La première équipe qui trouve la combinaison gagne la manche. On remet les palettes en vrac, on change de gardien, et on passe à la manche suivante.", "3 manches (une manche bonus si la station est en avance) : la première équipe à 2 manches gagne la station, 4 points et la pièce de la tenture."],
     mini: [['Je suis une grande église catholique, construite en 1909 au cœur de la vieille ville. Qui suis-je ?', "La basilique de l'Immaculée Conception"], ['Chaque 10 janvier, le Bénin célèbre une fête nationale dont Ouidah est la capitale. Laquelle ?', 'La fête du Vodun (les Vodun Days)'], ['Ouidah est à environ combien de kilomètres de Cotonou : 10, 40 ou 100 ?', 'Environ 40 km'], ['Energy Services · Parmi ces installations, laquelle relève du courant faible : groupe électrogène, poste de transformation, vidéosurveillance, tableau électrique ?', 'La vidéosurveillance']] },
   { id: 'maro', lieu: 'Quartier Maro', pole: 'Lift', jeu: 'Le panneau des étages', jen: 'The floor panel', secs: 480,
     regle: ["Deux bornes, une par équipe, avec 8 motifs chacune : les 8 « étages » du panneau.", "Au centre, un paquet de cartes : des motifs des bornes, des motifs qui n'existent pas et des cartes neutres.", "À tour de rôle, chaque équipe tire une carte. Si le motif est sur sa borne, elle le pose dessus. Sinon, la carte est défaussée.", "La première équipe qui remplit ses 8 étages gagne la pièce de la tenture."],
@@ -997,6 +1031,7 @@ V2.st = id => {
   <div class="card" style="margin-top:14px"><h3>${Lx("Arrivée de l'équipe", 'Team arrival')} <span class="muted" style="font-size:13px">· révèle la station sur la carte des joueurs${s.final || id === 'zin' ? '' : ' · la première arrivée gagne 1 point'}</span></h3>
     <div class="row">${TT.map(t => { const v = ((n.vis || {})[id] || [])[t]; return `<button class="btn small ${v ? '' : 'ghost'} ${me === String(t) ? 'mine' : ''}" data-n2vis="${id}:${t}">${tdot(t)} ${tname(t)} ${v ? '· arrivée ✓' : '· est arrivée'}</button>`; }).join('')}</div>
     ${firstArr(id) !== null ? `<p class="muted" style="margin:8px 0 0;font-size:13px">${tname(firstArr(id))} est arrivée en premier : +1 point.</p>` : ''}</div>
+  ${bmCard(id)}
   <div class="card" style="margin-top:14px"><h3>${Lx('Qui gagne la pièce', 'Who wins the piece')} « ${PIECES.find(p => p.st === id).lab} » ?</h3>
     <div class="row">${s.coll ? `<button class="btn ${w === 2 ? '' : 'ghost'}" data-n2res="${id}:2">${tdot(2)} ${Lx('Le groupe a réussi le circuit', 'The group completed the circuit')}</button>` : TT.map(t => `<button class="btn ${w === t ? '' : 'ghost'} ${me === String(t) ? 'mine' : ''}" data-n2res="${id}:${t}">${tdot(t)} ${tname(t)}</button>`).join('')}</div>
     <p class="muted" style="margin:8px 0 0;font-size:13px">${w === null ? Lx('Pas encore de résultat. Un second clic efface le résultat.', 'No result yet. A second click clears it.') : (w === 2 ? Lx('Pièce gagnée par tous : 4 points pour chaque équipe.', 'Piece won by all: 4 points for each team.') : Lx(`${tname(w)} gagne la pièce et 4 points, ${tname(other(w))} marque 3 points.`, `${tname(w)} wins the piece and 4 points, ${tname(other(w))} scores 3 points.`))}</p></div>
@@ -1098,6 +1133,9 @@ function click2(d, t) {
   }
   if (d.n2force !== undefined) { n.open = true; n.bonus = false; save(); render(); return true; }
   if (d.n2q) { const [r, tm, v] = d.n2q.split(':').map(Number); n.q[r][tm] = n.q[r][tm] === (v === 1) ? null : v === 1; save(); render(); return true; }
+  if (d.n2bmr !== undefined) { BM().r = +d.n2bmr; save(); render(); return true; }
+  if (d.n2bmg) { const [r, tm, i] = d.n2bmg.split(':').map(Number); const b = BM(); const g = (b.g[r] || [null, null]).slice(); g[tm] = g[tm] === i ? null : i; b.g[r] = g; save(); render(); return true; }
+  if (d.n2bmw) { const [r, tm] = d.n2bmw.split(':').map(Number); const b = BM(); if (b.w[r] === tm) delete b.w[r]; else b.w[r] = tm; const t2 = TT.find(x => bmWins(x) >= 2); if (t2 !== undefined) n.res.bas = t2; else if (n.res.bas !== undefined && bmWins(n.res.bas) < 2) delete n.res.bas; save(); render(); return true; }
   if (d.n2res) { const [id, tm] = d.n2res.split(':'); if (winner(id) === +tm) delete n.res[id]; else n.res[id] = +tm; save(); render(); return true; }
   if (d.n2piece) { const [id, v] = d.n2piece.split(':'); const val = v === 'x' ? 'x' : +v; if (n.pc[id] === val) delete n.pc[id]; else n.pc[id] = val; if (n.pc[id] !== 'x') delete n.rp[id]; save(); render(); return true; }
   if (d.n2vis) { const [id, tm] = d.n2vis.split(':'); n.vis = n.vis || {}; const v = (n.vis[id] || [null, null]).slice(); v[+tm] = v[+tm] ? null : Date.now(); if (!v[0] && !v[1]) delete n.vis[id]; else n.vis[id] = v; save(); render(); return true; }
@@ -1115,6 +1153,7 @@ function click2(d, t) {
 function input2(t, d) {
   const n = N();
   if (d.n2role !== undefined) { try { localStorage.setItem('aw-role', t.value); } catch (e) {} render(); return true; }
+  if (d.n2bmc !== undefined) { n.bmc = t.value.split(',').map(x => x.trim()).filter(Boolean).slice(0, 6); save(); return true; }
   if (d.n2pf !== undefined) { n.players[+d.n2pf].fonction = t.value; save(); return true; }
   if (d.n2pn !== undefined) { n.players[+d.n2pn].name = t.value; n.teams = null; save(); const b = document.querySelector('[data-n2teams]'); if (b) b.disabled = n.players.filter(p => p.name.trim()).length < 4; return true; }
   if (d.c2 !== undefined) { t.value = t.value.replace(/\D/g, '').slice(0, 1); if (t.value && +d.c2 < 3) { const nx = $('#c2' + (+d.c2 + 1)); if (nx) nx.focus(); } return true; }
@@ -1315,13 +1354,22 @@ function renderP() {
     const tabs = [['carte', 'Carte'], ['scores', 'Scores'], ['moi', 'Moi'], ['savoir', 'Le saviez-vous ?']];
     const nav = `<nav class="ptabs">${tabs.map(([k, l]) => `<button class="${tab === k ? 'on' : ''}" data-ptab="${k}">${l}</button>`).join('')}</nav>`;
     const v = tab === 'scores' ? pScores(t) : tab === 'moi' ? pMe(t) : tab === 'savoir' ? pFacts(t) : `${pMap(t)}${pDetail(t)}<h3 class="ph">Où en sont les équipes</h3>${pProgress(t)}`;
-    body = nav + `<div class="pbody">${v}</div>`;
+    body = pGardien(t) + nav + `<div class="pbody">${v}</div>`;
   }
   pShell(body, 'La Ville des Lumières', pill);
 }
+/* Bottle Match : la combinaison n'apparaît que sur le téléphone du gardien du code de la manche */
+function pGardien(t) {
+  const n = N(); if (!n.bm || t === null) return '';
+  const b = n.bm, r = b.r, g = b.g[r], mi = myIdx();
+  if (!g || mi === null || g[t] !== mi || b.w[r] !== undefined) return '';
+  return `<div class="pcard" style="margin-top:14px;border-color:#FBBC04"><div class="pk">Place de la basilique · ${r < 3 ? 'manche ' + (r + 1) : 'manche bonus'}</div><h3 style="margin:0 0 6px">Vous êtes le gardien du code</h3>
+    <p class="muted" style="margin:0 0 10px;font-size:13px">Ne montrez cet écran à personne. Placez-vous devant le tiroir et répondez seulement par oui ou par non.</p>
+    <div class="bmhold" data-bmhold><div class="bmmask">Maintenez le doigt ici pour voir la combinaison</div><div class="bmshow">${bmSwatches(r)}</div></div></div>`;
+}
 function pShell(body, title, pill) {
   let box = document.getElementById('player');
-  if (!box) { box = document.createElement('div'); box.id = 'player'; document.body.appendChild(box); box.addEventListener('click', pClick, true); }
+  if (!box) { box = document.createElement('div'); box.id = 'player'; document.body.appendChild(box); box.addEventListener('click', pClick, true); const on = e => { const h = e.target.closest && e.target.closest('[data-bmhold]'); if (h) { h.classList.add('show'); e.preventDefault(); } }, off = () => box.querySelectorAll('[data-bmhold].show').forEach(h => h.classList.remove('show')); box.addEventListener('pointerdown', on); ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => box.addEventListener(ev, off)); box.addEventListener('contextmenu', e => { if (e.target.closest && e.target.closest('[data-bmhold]')) e.preventDefault(); }); }
   document.querySelector('.wrap').style.display = 'none'; box.style.display = '';
   const home = PM.lvl === 1 || PM.lvl === 2;
   const head = `<div class="phead"><div>${home ? '<button class="plink" style="margin:0 0 6px;display:block" data-phome>← Les niveaux</button>' : '<div class="pk">AWENI × CFAO GREEN INFRA</div>'}<b class="ptitle">${esc(title)}</b></div>${pill || ''}</div>`;
