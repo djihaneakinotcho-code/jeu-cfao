@@ -795,9 +795,9 @@ const ST2 = [
   { id: 'maro', lieu: 'Place Chacha', pole: 'Lift', jeu: 'Le panneau des étages', jen: 'The floor panel', secs: 480,
     regle: ["Deux bornes, une par équipe, avec 8 motifs chacune : les 8 « étages » du panneau.", "Au centre, un paquet de cartes : des motifs des bornes, des motifs qui n'existent pas et des cartes neutres.", "À tour de rôle, chaque équipe tire une carte. Si le motif est sur sa borne, elle le pose dessus. Sinon, la carte est défaussée.", "La première équipe qui remplit ses 8 étages gagne la pièce de la tenture."],
     mini: [["Je suis le quartier des familles revenues du Brésil, aux maisons colorées. Quel est mon nom ?", 'Maro'], ['Comment appelle-t-on au Bénin les familles revenues du Brésil ?', 'Les Agoudas'], ['Masques et costumes colorés venus du Brésil, cette mascarade défile à Ouidah et à Porto-Novo. Laquelle ?', 'Le Bourian (à confirmer avec le guide)'], ["Lift · Quelle est la marque d'ascenseurs de référence du pôle Lift ?", 'Otis']] },
-  { id: 'mus', lieu: 'La Route des Esclaves', pole: 'Renewable Energy', jeu: 'Les lieux de mémoire', jen: 'The places of memory', secs: 600,
-    regle: ["Après la place Chacha, tout le monde monte dans le bus. On ne descend pas avant la Porte.", "Le bus ralentit devant l'Arbre de l'Oubli et les lieux de la Route des Esclaves. Le guide raconte.", "Pendant le trajet, le guide pose 3 questions sur ce que les équipes ont vu et entendu depuis Zinsou. Chaque équipe écrit ses réponses.", "Celle qui a le plus de bonnes réponses gagne la pièce de la tenture. En cas d'égalité, question subsidiaire."],
-    q3: [["Le temple des Pythons · Face à quel monument se trouve le temple des Pythons ?", "La basilique de l'Immaculée Conception"], ["La place Chacha · Que se passait-il sur cette place ?", "Les captifs y étaient vendus aux enchères"], ["L'Arbre de l'Oubli · Combien de fois les hommes tournaient-ils autour de l'arbre ?", "9 fois (les femmes 7 fois), pour oublier leur origine"], ["Question subsidiaire · Comment s'appelait le marchand surnommé « Chacha » ?", "Francisco Félix de Souza"]],
+  { id: 'mus', lieu: "L'Arbre du Retour", pole: 'Renewable Energy', jeu: 'Les lieux de mémoire', jen: 'The places of memory', secs: 600,
+    regle: ["Après la place Chacha, on marche un peu, puis tout le monde monte dans le bus. Le guide raconte la Route des Esclaves en chemin.", "Arrêt à l'Arbre du Retour. Le fort portugais est en travaux : on le présente ici, avec le duel des cartes du fort.", "Le guide pose ensuite 3 questions sur ce que les équipes ont vu et entendu depuis Zinsou. Chaque équipe écrit ses réponses. Celle qui a le plus de bonnes réponses gagne la pièce de la tenture ; en cas d'égalité, question subsidiaire.", "Puis le bus repart vers la Porte du Non-Retour."],
+    q3: [["Le temple des Pythons · Face à quel monument se trouve le temple des Pythons ?", "La basilique de l'Immaculée Conception"], ["La place Chacha · Que se passait-il sur cette place ?", "Les captifs y étaient vendus aux enchères"], ["L'Arbre du Retour · Pourquoi les captifs tournaient-ils autour de cet arbre ?", "Pour que leur âme puisse revenir sur la terre de leurs ancêtres (à confirmer avec le guide)"], ["Question subsidiaire · Comment s'appelait le marchand surnommé « Chacha » ?", "Francisco Félix de Souza"]],
     mini: [["Je suis un fort construit par les Portugais en 1721, et je suis resté portugais jusqu'en 1961. Qui suis-je ?", "Le fort portugais, aujourd'hui Musée d'histoire de Ouidah"], ["Avant d'appartenir au royaume du Dahomey, Ouidah était au cœur d'un autre royaume. Lequel ?", 'Le royaume Xwéda (Houéda)'], ['En fon, Ouidah s\'appelle Glexwé. Que veut dire ce nom ?', '« La maison des champs » (à confirmer avec le guide)'], ['Renewable Energy · Les bornes de recharge pour voitures électriques, c\'est quel pôle ?', 'Renewable Energy']] },
   { id: 'porte', lieu: 'Porte du Non-Retour', pole: 'Renewable Energy', jeu: 'Le circuit, tous ensemble', jen: 'The circuit, all together', secs: 480, final: true, coll: true,
     regle: ["Un moment de silence devant la Porte, avec le guide. Ensuite seulement, on rejoint l'esplanade, à distance du monument.", "Les deux équipes forment un seul grand cercle et se tiennent la main. Le cerceau, c'est le courant : il doit faire tout le tour du cercle sans que personne ne lâche les mains.", "1er essai : un cerceau, on chronomètre. Puis 30 secondes pour décider d'une stratégie.", "Le défi : battre ce temps d'au moins 20 %.", "La finale : deux cerceaux lancés en sens inverse, qui doivent se croiser et revenir au départ.", "Si le groupe réussit, la pièce centrale de la tenture est gagnée par tous. C'est le seul point gagné collectivement. Puis le Pacte."],
@@ -805,17 +805,17 @@ const ST2 = [
 ];
 const STMAP = Object.fromEntries(ST2.map(s => [s.id, s]));
 /* Le duel des cartes : à chaque station, l'animateur lit les cartes mini-jeux du lieu ; la première équipe qui répond juste gagne la carte */
-const DUEL = { zin: ['zin'], bas: ['bas', 'maro'], maro: ['mus'], mus: [], porte: [] };
-const DQ = { zin: [0, 2], bas: [0, 2], maro: [0, 2], mus: [1, 2] };      /* les 2 questions posées (devinette, énigme) */
-const DSV = { zin: 1, bas: 1, maro: 1, mus: null };                     /* la carte « Le saviez-vous ? », remise à l'équipe gagnante de la station */
-const DST = { zin: 'zin', bas: 'bas', maro: 'bas', mus: 'maro' };        /* station où se joue chaque jeu de cartes */
+const DUEL = { zin: ['zin'], bas: ['bas', 'maro'], maro: [], mus: ['mus'], porte: [] };
+const DQ = { zin: [0, 2], bas: [0, 2], maro: [0, 2], mus: [0, 2] };      /* les 2 questions posées (devinette, énigme) */
+const DSV = { zin: 1, bas: 1, maro: 1, mus: 1 };                     /* la carte « Le saviez-vous ? », remise à l'équipe gagnante de la station */
+const DST = { zin: 'zin', bas: 'bas', maro: 'bas', mus: 'mus' };        /* station où se joue chaque jeu de cartes */
 const dq = (m, k) => ((N().dq || {})[m] || [null, null])[k];
-const DUELLAB = { zin: 'Les cartes de Zinsou', bas: 'Les cartes de la basilique (le guide en a parlé dans le bus)', maro: 'Les cartes de Maro', mus: 'Les cartes de Ouidah (jeu du fort, sans la carte du fort)' };
+const DUELLAB = { zin: 'Les cartes de Zinsou', bas: 'Les cartes de la basilique (le guide en a parlé dans le bus)', maro: 'Les cartes de Maro', mus: 'Les cartes du fort (le fort est en travaux : on le présente à l\'arrêt)' };
 /* La tenture : 9 pièces en 3 × 3. Les 5 pièces des stations, et 4 pièces cachées dans les mini-jeux. */
 const PIECES = [
   { id: 'zin', lab: 'Zinsou', st: 'zin' }, { id: 'm-bas', lab: 'Cartes de la basilique', mini: 'bas' }, { id: 'bas', lab: 'Place Maro', st: 'bas' },
   { id: 'm-zin', lab: 'Cartes de Zinsou', mini: 'zin' }, { id: 'porte', lab: 'Porte du Non-Retour', st: 'porte' }, { id: 'm-maro', lab: 'Cartes de Maro', mini: 'maro' },
-  { id: 'maro', lab: 'Place Chacha', st: 'maro' }, { id: 'm-mus', lab: 'Cartes de Ouidah', mini: 'mus' }, { id: 'mus', lab: 'Route des Esclaves', st: 'mus' }
+  { id: 'maro', lab: 'Place Chacha', st: 'maro' }, { id: 'm-mus', lab: 'Cartes du fort', mini: 'mus' }, { id: 'mus', lab: 'Arbre du Retour', st: 'mus' }
 ];
 const role = () => { try { return localStorage.getItem('aw-role') || ''; } catch (e) { return ''; } };
 const shuffle2 = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -927,7 +927,7 @@ const STEPS2 = [
   { id: 'eq', fr: 'Équipes', en: 'Teams' },
   { id: 'savoir', fr: 'Ce que je sais de toi', en: 'What I know about you' },
   { id: 'carte', fr: 'La carte', en: 'The map' },
-  ...ST2.map(s => ({ id: 'st:' + s.id, fr: s.lieu.replace('La Route des Esclaves', 'Route des Esclaves').replace('Porte du Non-Retour', 'La Porte'), en: s.lieu })),
+  ...ST2.map(s => ({ id: 'st:' + s.id, fr: s.lieu.replace('Porte du Non-Retour', 'La Porte'), en: s.lieu })),
   { id: 'pacte', fr: 'Le Pacte', en: 'The Pact' },
   { id: 'branch', fr: 'La tenture', en: 'The hanging' },
   { id: 'badges', fr: 'Badges', en: 'Badges' },
@@ -1014,11 +1014,11 @@ V2.carte = () => {
   const n = N(), L = steps2();
   const idx = id => L.findIndex(x => x.id === 'st:' + id);
   const stat = id => { const w = winner(id); return w === null ? `<span class="muted">${Lx('à jouer', 'to play')}</span>` : `${tdot(w)} ${tname(w)}`; };
-  const order = { zin: Lx('Étape 1, pour tous, en bus', 'Step 1, by bus'), bas: Lx('Étape 2, en bus : le guide parle de la basilique en chemin', 'Step 2, by bus'), maro: Lx('Étape 3, à pied', 'Step 3, on foot'), mus: Lx('Étape 4, un peu à pied puis en bus, sans descendre', 'Step 4, on foot then by bus'), porte: Lx('Étape 5, pour tous, au coucher du soleil', 'Step 5, at sunset') };
+  const order = { zin: Lx('Étape 1, pour tous, en bus', 'Step 1, by bus'), bas: Lx('Étape 2, en bus : le guide parle de la basilique en chemin', 'Step 2, by bus'), maro: Lx('Étape 3, à pied', 'Step 3, on foot'), mus: Lx("Étape 4, en bus, arrêt à l'Arbre du Retour", 'Step 4, by bus, stop at the Tree of Return'), porte: Lx('Étape 5, pour tous, au coucher du soleil', 'Step 5, at sunset') };
   return `
   <p class="eyebrow">${Lx('La carte au trésor', 'The treasure map')}</p>
   <h2>${Lx('Cinq lieux, une tenture', 'Five places, one hanging')}</h2>
-  <p class="lead">${Lx("Tout le monde commence à la Fondation Zinsou et finit à la Porte du Non-Retour. Entre les deux, le parcours est le même pour les deux équipes : la place Maro en bus, la place Chacha à pied, puis la Route des Esclaves en bus. À chaque station, le duel des cartes ouvre le jeu : 2 questions, 1 point par bonne réponse.", 'Everyone starts at the Zinsou Foundation and ends at the Door of No Return. In between, each team picks its route on its map. The mini-games along the way lead to the next place.')}</p>
+  <p class="lead">${Lx("Tout le monde commence à la Fondation Zinsou et finit à la Porte du Non-Retour. Entre les deux, le parcours est le même pour les deux équipes : la place Maro en bus, la place Chacha à pied, puis la Route des Esclaves en bus, avec un arrêt à l'Arbre du Retour. À chaque station, le duel des cartes ouvre le jeu : 2 questions, 1 point par bonne réponse.", 'Everyone starts at the Zinsou Foundation and ends at the Door of No Return. In between, each team picks its route on its map. The mini-games along the way lead to the next place.')}</p>
   <div class="card" style="margin-top:14px;padding:0">${ST2.map(st => `<button class="maprow" data-go="${idx(st.id)}" style="display:flex;width:100%;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;background:none;border:0;border-bottom:1px solid var(--line);color:inherit;text-align:left;cursor:pointer;font:inherit"><span><b>${st.lieu}</b><br><span class="muted" style="font-size:13px">${Lx(st.jeu, st.jen)} · ${order[st.id]}</span></span><span style="white-space:nowrap">${stat(st.id)}</span></button>`).join('')}</div>
   ${notes(["Ouvre la station où se trouve l'équipe : l'ordre des tabs n'a pas d'importance.", "Les jeux des stations sont des duels : les deux équipes s'y retrouvent. La première arrivée gagne 1 point et commence le jeu.", "Chaque accompagnateur AWENI peut valider depuis son téléphone : tout est synchronisé."])}`;
 };
@@ -1239,7 +1239,7 @@ const FACTS = {
     ['Le 10 janvier', "Chaque 10 janvier, le Bénin célèbre la fête du Vodun. Ouidah en est la capitale."]
   ],
   mus: [
-    ["L'Arbre de l'Oubli", "Sur la Route des Esclaves, les captifs devaient tourner autour de cet arbre pour oublier leur origine : 9 fois pour les hommes, 7 fois pour les femmes."],
+    ["L'Arbre du Retour", "Sur la Route des Esclaves, à Zoungbodji. Selon la tradition, les captifs en faisaient le tour pour que leur âme puisse un jour revenir sur la terre de leurs ancêtres."],
     ['Le royaume Xwéda', "Avant d'appartenir au royaume du Dahomey, Ouidah était au cœur du royaume Xwéda (Houéda)."]
   ],
   porte: [
@@ -1289,7 +1289,7 @@ function pMap(t) {
     if (sel) o.push(`<circle cx="${x}" cy="${y}" r="6" fill="none" stroke="#f6f0e4" stroke-width=".5"/>`);
     o.push(rv ? `<circle cx="${x}" cy="${y}" r="4.2" fill="#fbbc04"/>` : `<circle cx="${x}" cy="${y}" r="4.2" fill="#15110d" stroke="#fbbc04" stroke-width=".7" stroke-dasharray="1.4 .9"/>`);
     o.push(`<text x="${x}" y="${y + 1.5}" text-anchor="middle" font-size="4" font-weight="800" fill="${rv ? '#1a1405' : '#fbbc04'}">${id === 'zin' ? '★' : done ? '✓' : MSYM[id]}</text>`);
-    o.push(`<text x="${left ? x - 5.6 : x + 5.6}" y="${y - 1}" text-anchor="${left ? 'end' : 'start'}" font-size="3" font-weight="800" fill="${rv ? '#fbbc04' : '#b9ad98'}">${rv ? ({ zin: 'Fondation Zinsou', bas: 'Place Maro', maro: 'Place Chacha', mus: 'Route des Esclaves' })[id] : 'Station ?'}</text>`);
+    o.push(`<text x="${left ? x - 5.6 : x + 5.6}" y="${y - 1}" text-anchor="${left ? 'end' : 'start'}" font-size="3" font-weight="800" fill="${rv ? '#fbbc04' : '#b9ad98'}">${rv ? ({ zin: 'Fondation Zinsou', bas: 'Place Maro', maro: 'Place Chacha', mus: 'Arbre du Retour' })[id] : 'Station ?'}</text>`);
     o.push('</g>');
   });
   [t, ot].forEach((tm, k) => {
@@ -1313,7 +1313,7 @@ function pDetail(t) {
 
 function pProgress(t) {
   return TT.map(tm => `<div class="pteam"><span class="pill2">${tdot(tm)}${esc(tname(tm))}${tm === t ? ' · vous' : ''}</span>
-    <div class="psteps">${ORDER.map(id => { const v = visited(id, tm); const lab = id === 'zin' ? 'Zinsou' : id === 'porte' ? 'Porte' : (t !== null && revealed(id, t) ? STMAP[id].lieu.replace('La Route des Esclaves', 'Route') : MSYM[id]); return `<i class="${v ? 'on' : ''}" style="${v ? `background:${TEAMS2[tm].col};border-color:${TEAMS2[tm].col}` : ''}">${esc(lab)}</i>`; }).join('')}</div></div>`).join('');
+    <div class="psteps">${ORDER.map(id => { const v = visited(id, tm); const lab = id === 'zin' ? 'Zinsou' : id === 'porte' ? 'Porte' : (t !== null && revealed(id, t) ? STMAP[id].lieu.replace("L'Arbre du Retour", 'Arbre') : MSYM[id]); return `<i class="${v ? 'on' : ''}" style="${v ? `background:${TEAMS2[tm].col};border-color:${TEAMS2[tm].col}` : ''}">${esc(lab)}</i>`; }).join('')}</div></div>`).join('');
 }
 
 function pFacts(t) {
