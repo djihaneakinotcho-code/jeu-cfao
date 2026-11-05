@@ -37,8 +37,16 @@ function draw(a){
  <h2>Les trois questions de Cotonou</h2><div class="grid"><div class="c"><div class="v">${avg(a,'k1')}/5</div><div class="l">Je connais les autres participants</div></div><div class="c"><div class="v">${avg(a,'k2')}/5</div><div class="l">Je sais à qui m'adresser dans le réseau</div></div><div class="c"><div class="v">${avg(a,'k3')}/5</div><div class="l">Je me sens membre d'une même équipe</div></div></div>
  <h2>Épisode vécu</h2>${bars(count(a,'ep',['Cotonou','Ouidah','Les deux']))}
  <h2>Ce qu'ils ont préféré</h2>${bars(count(a,'pref',['Les jeux','La découverte culturelle','Les échanges entre filiales',"L'application","L'ambiance","L'organisation"],true))}
+ <h2>Les titres de Ouidah · votes</h2>${titres(a)}
  <h2>Moments forts</h2>${a.filter(x=>x.fort).map(x=>`<div class="t">${esc(x.fort)} <span>${x.nom?'· '+esc(x.nom):''}</span></div>`).join('')||'<p style="color:var(--muted)">Pas encore de réponse.</p>'}
  <h2>Pistes d'amélioration</h2>${a.filter(x=>x.amel).map(x=>`<div class="t">${esc(x.amel)} <span>${x.nom?'· '+esc(x.nom):''}</span></div>`).join('')||'<p style="color:var(--muted)">Pas encore de réponse.</p>'}`;
+}
+const TT=[['architecte',"L'Architecte"],['batisseur','Le Bâtisseur'],['passeur','Le Passeur'],['rassembleur','Le Rassembleur'],['stratege','Le Stratège'],['gardien','Le Gardien'],['griot','Le Griot'],['visionnaire','Le Visionnaire']];
+function titres(a){
+ const votes={};TT.forEach(([id])=>votes[id]={});a.forEach(x=>Object.entries(x.titres||{}).forEach(([id,n])=>{if(votes[id]){const k=String(n).trim();votes[id][k]=(votes[id][k]||0)+1}}));
+ const cand=[];TT.forEach(([id])=>Object.entries(votes[id]).forEach(([n,c])=>cand.push({id,n,c})));cand.sort((p,q)=>q.c-p.c);
+ const given={},taken=new Set();cand.forEach(x=>{if(!given[x.id]&&!taken.has(x.n.toLowerCase())){given[x.id]=x;taken.add(x.n.toLowerCase())}});
+ return TT.map(([id,t])=>{const rows=Object.entries(votes[id]).sort((p,q)=>q[1]-p[1]);return `<div class="t"><b>${t}</b> → ${given[id]?`<b style="color:var(--y)">${esc(given[id].n)}</b> <span>(${given[id].c} vote${given[id].c>1?'s':''})</span>`:'<span>pas encore de vote</span>'}<br><span>${rows.map(([n,c])=>esc(n)+' '+c).join(' · ')}</span></div>`}).join('')+'<p style="color:var(--muted);font-size:13px">Proposition : un titre par personne, attribué au plus voté. Les détails des votes sont sous chaque titre.</p>';
 }
 function start(){el.innerHTML='<p style="color:var(--muted)">Chargement…</p>';db.collection('avis').onSnapshot(s=>draw(s.docs.map(d=>d.data()).sort((x,y)=>(y.ts||0)-(x.ts||0))),e=>{el.innerHTML='<p>Lecture impossible : vérifiez les règles Firebase (collection « avis »).</p>'})}
 ok?start():gate();
