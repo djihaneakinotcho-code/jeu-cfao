@@ -812,7 +812,7 @@ const DSV = { zin: 3, bas: 3, maro: 3, mus: 3 };                     /* la carte
 const DST = { zin: 'zin', bas: null, maro: 'bas', mus: 'mus' };        /* station où se joue chaque jeu de cartes */
 const dq = (m, k) => ((N().dq || {})[m] || [null, null])[k];
 const DUELLAB = { zin: 'Les cartes de Zinsou · posées dans le bus, en partant du Native Hotel', bas: 'Les cartes de la basilique · posées dans le bus, en partant de Zinsou', maro: 'Les cartes de Maro · posées à la place Chacha', mus: 'Les cartes du fort · posées à l\'Arbre du Retour (le fort est en travaux)' };
-const DPRIZE = { zin: "l'équipe gagnante de Zinsou", bas: "la première équipe qui répond à la question du guide dans le bus (par exemple : quel monument fait face au temple des Pythons ?)", maro: "l'équipe gagnante du Bottle Match, à la place Maro", mus: "l'équipe gagnante de l'Arbre du Retour" };
+const DPRIZE = { zin: "l'équipe gagnante de Zinsou", bas: "la première équipe qui répond à la question du guide, posée à l'arrivée place Maro quand les deux bus sont là (par exemple : quel monument fait face au temple des Pythons ?)", maro: "l'équipe gagnante du Bottle Match, à la place Maro", mus: "l'équipe gagnante de l'Arbre du Retour" };
 /* La tenture : 9 pièces en 3 × 3. Les 5 pièces des stations, et 4 pièces cachées dans les mini-jeux. */
 const PIECES = [
   { id: 'zin', lab: 'Zinsou', st: 'zin' }, { id: 'm-bas', lab: 'Cartes de la basilique', mini: 'bas' }, { id: 'bas', lab: 'Place Maro', st: 'bas' },
@@ -841,7 +841,7 @@ const isBourse = () => false;
 /* ---------- scoring ---------- */
 const other = t => 1 - t;
 function firstArr(id) {
-  if (id === 'zin' || id === 'porte') return null;
+  if (id !== 'maro') return null; /* 2 bus : le bonus d'arrivée ne compte que pour la marche Maro → Chacha */
   const v = (N().vis || {})[id]; if (!v) return null;
   if (v[0] && v[1]) return v[0] <= v[1] ? 0 : 1;
   return v[0] ? 0 : v[1] ? 1 : null;
@@ -864,7 +864,7 @@ function teamPts(t) {
   let s = n.bonus ? 2 : 0;
   s += qOk(t);
   ST2.forEach(st => { const w = winner(st.id); if (w !== null) s += (w === t || w === 2) ? 4 : 3; if (firstArr(st.id) === t) s += 1; });
-  Object.values(n.dq || {}).forEach(a => (a || []).forEach(x => { if (x === t) s += 1; }));
+  Object.values(n.dq || {}).forEach(a => (a || []).forEach(x => { if (x === t || x === 2) s += 1; }));
   return s;
 }
 function pts2() { const n = N(), o = {}; (n.teams || []).forEach((tm, t) => tm.forEach(i => { if (n.players[i] && n.players[i].name.trim()) o[i] = (n.open ? 1 : 0) + qOk(t) + ST2.filter(st => winner(st.id) === t || winner(st.id) === 2).length + ((n.pb || {})[i] || 0); })); return o; }
@@ -1046,9 +1046,9 @@ V2.st = id => {
     <div class="row">${s.coll ? `<button class="btn ${w === 2 ? '' : 'ghost'}" data-n2res="${id}:2">${tdot(2)} ${Lx('Le groupe a réussi le circuit', 'The group completed the circuit')}</button>` : TT.map(t => `<button class="btn ${w === t ? '' : 'ghost'} ${me === String(t) ? 'mine' : ''}" data-n2res="${id}:${t}">${tdot(t)} ${tname(t)}</button>`).join('')}</div>
     <p class="muted" style="margin:8px 0 0;font-size:13px">${w === null ? Lx('Pas encore de résultat. Pour corriger, touchez l\'autre équipe ; pour tout effacer, « Rejouer » en bas.', 'No result yet. A second click clears it.') : (w === 2 ? Lx('Pièce gagnée par tous : 4 points pour chaque équipe.', 'Piece won by all: 4 points for each team.') : Lx(`${tname(w)} gagne la pièce et 4 points, ${tname(other(w))} marque 3 points.`, `${tname(w)} wins the piece and 4 points, ${tname(other(w))} scores 3 points.`))}</p></div>
   ${(DUEL[id] || []).map(m => { const C = STMAP[m].mini, pc = PIECES.find(p => p.mini === m), own = pieceOwner(pc); return `<div class="card" style="margin-top:14px"><h3>Le duel des cartes · ${DUELLAB[m]}</h3>
-    <p class="muted" style="margin:0 0 8px;font-size:13px">Lis la devinette et le « Le saviez-vous ? » pour faire deviner le lieu. La première équipe qui répond juste marque 1 point par question ; ajoute 1 point perso à celui qui a trouvé (panneau « Points perso »).</p>
+    <p class="muted" style="margin:0 0 8px;font-size:13px">Lis la devinette et le « Le saviez-vous ? » pour faire deviner le lieu. Avec 2 bus, chaque animateur pose les questions dans le sien : chaque équipe qui répond juste marque 1 point (touche « Les deux équipes » si les deux trouvent) ; ajoute 1 point perso à celui qui a trouvé (panneau « Points perso »).</p>
     ${DQ[m].map((k, j) => `<div style="border-top:1px solid var(--line);padding:8px 0"><b>${j ? 'Le saviez-vous ?' : 'Devinette'}.</b> ${C[k][0]} <details style="display:inline"><summary class="muted" style="display:inline;cursor:pointer">réponse</summary> <i>${C[k][1]}</i></details>
-      <div class="row" style="margin-top:6px">${TT.map(t => `<button class="btn small ${dq(m, j) === t ? '' : 'ghost'} ${me === String(t) ? 'mine' : ''}" data-n2dq="${m}:${j}:${t}">${Lx('Trouvée par', 'Found by')} ${tname(t)}</button>`).join('')}</div></div>`).join('')}
+      <div class="row" style="margin-top:6px">${TT.map(t => `<button class="btn small ${dq(m, j) === t ? '' : 'ghost'} ${me === String(t) ? 'mine' : ''}" data-n2dq="${m}:${j}:${t}">${Lx('Trouvée par', 'Found by')} ${tname(t)}</button>`).join('')}<button class="btn small ${dq(m, j) === 2 ? '' : 'ghost'}" data-n2dq="${m}:${j}:2">Les deux équipes</button></div></div>`).join('')}
     <div style="border-top:1px solid var(--line);padding:8px 0 0"><b>La carte métier et la pièce de tenture</b> <span class="muted">· remises à ${DPRIZE[m]}. La carte métier n'est pas posée : son dos complète le dessin du lieu.</span>
       <div class="row" style="margin-top:6px">${TT.map(t => `<button class="btn small ${own === t ? '' : 'ghost'}" data-n2piece="${pc.id}:${t}">${Lx('Gagnées par', 'Won by')} ${tname(t)}</button>`).join('')}<span class="muted" style="font-size:12.5px">${DST[m] ? 'Automatique quand la station est gagnée.' : ''}</span></div></div></div>`; }).join('')}
   ${s.final ? `<div class="card" style="margin-top:14px"><h3>${Lx('Les pièces non trouvées', 'The pieces not found')}</h3>
