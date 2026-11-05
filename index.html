@@ -994,9 +994,10 @@ V2.eq = () => {
   return `
   <p class="eyebrow">${Lx('Les équipes', 'The teams')}</p>
   <h2>${Lx('Deux équipes, une tenture', 'Two teams, one hanging')}</h2>
-  <p class="lead">${Lx("Chaque équipe suit sa carte au trésor. À chaque station, les deux équipes s'affrontent pour une pièce. D'autres pièces sont cachées dans les mini-jeux du chemin. À la Porte du Non-Retour, on assemble la tenture ensemble.", 'Each team follows its treasure map. At each station, both teams compete for a piece. More pieces are hidden in the mini-games along the way. At the Door of No Return, the hanging is assembled together.')}</p>
-  <div class="tgrid" style="margin-top:14px">${(n.teams || [[], []]).map((tm, t) => `<div class="tcol" style="border-color:${TEAMS2[t].col}"><h3>${tdot(t)}${tname(t)}</h3>${tm.map(i => `<p>${esc(n.players[i].name)} <span class="muted">· ${esc(n.players[i].pays || '')}</span></p>`).join('')}</div>`).join('')}</div>
+  <p class="lead">${Lx("Chaque équipe suit sa carte au trésor. À chaque station, les deux équipes s'affrontent pour une pièce. D'autres se gagnent avec les cartes mini-jeux. À la Porte du Non-Retour, on assemble la tenture ensemble.", 'Each team follows its treasure map. At each station, both teams compete for a piece. More pieces are hidden in the mini-games along the way. At the Door of No Return, the hanging is assembled together.')}</p>
+  <div class="tgrid" style="margin-top:14px">${(n.teams || [[], []]).map((tm, t) => `<div class="tcol" style="border-color:${TEAMS2[t].col}"><h3>${tdot(t)}${tname(t)}</h3>${tm.map(i => `<p class="row" style="justify-content:space-between;gap:8px;margin:4px 0"><span>${esc(n.players[i].name)} <span class="muted">· ${esc(n.players[i].pays || '')}${n.players[i].metier ? ' · ' + esc(n.players[i].metier) : ''}</span></span><button class="btn small ghost" data-n2mv="${i}">→ ${tname(1 - t)}</button></p>`).join('')}</div>`).join('')}</div>
   <div class="row" style="margin-top:18px">${next2('Premier jeu : Ce que je sais de toi', 'First game: What I know about you')}</div>
+  <p class="muted" style="font-size:13px;margin:10px 0 0">Les équipes sont formées automatiquement pour mêler pays et pôles. Pour échanger quelqu'un, touchez « → » à côté de son nom. Gardez deux équipes de taille égale.</p>
   ${notes(["Chaque équipe part avec son guide et son animateur AWENI. Djihane circule entre les deux équipes et anime le final.", "Règles en 3 minutes maximum. Le reste s'explique à chaque station."])}`;
 };
 
@@ -1131,6 +1132,7 @@ function click2(d, t) {
   if (d.pb2) { const [i, v] = d.pb2.split(':').map(Number); n.pb = n.pb || {}; n.pb[i] = Math.max(0, (n.pb[i] || 0) + v); save(); render(); return true; }
   if (d.n2lang) { n.lang = d.n2lang; save(); render(); return true; }
   if (d.n2teams !== undefined) { buildTeams2(); save(); render(); return true; }
+  if (d.n2mv !== undefined) { const i = +d.n2mv; if (!n.teams) return true; const t = n.teams[0].includes(i) ? 0 : 1; n.teams[t] = n.teams[t].filter(x => x !== i); n.teams[1 - t].push(i); save(); render(); return true; }
   if (d.n2redo) { redoN2(d.n2redo); save(); render(); return true; }
   if (d.try2 !== undefined) {
     const v = [0, 1, 2, 3].map(j => ($('#c2' + j) || {}).value || '').join('');
@@ -1360,7 +1362,7 @@ function renderP() {
   if (t === null && !PM.rids.length && !n.open) body = pRegCall(2, "Inscrivez-vous dès maintenant. Le Niveau 2 s'ouvrira quand les animateurs auront reçu le code du Flambeau.");
   else if (t === null) body = PM.rids.length ? `<div class="pcard" style="margin-top:14px;text-align:center"><div style="font-size:36px">✓</div><h3>Vous êtes inscrit${PM.rids.length > 1 ? 's' : ''}</h3><p class="muted">${esc((PM.names || []).join(', '))}</p><p class="muted" style="margin:0">Les animateurs forment les deux équipes. Votre équipe s'affichera ici automatiquement.</p></div>
     <div class="pcard"><div class="pk">Un seul téléphone pour plusieurs personnes ?</div><button class="pbtn" data-preg="2">Inscrire une autre personne</button></div>
-    <div class="pcard"><div class="pk">Ou choisir l'équipe à la main</div><div class="pnames">${TT.map(tm => `<button data-pteam="${tm}" style="border-color:${TEAMS2[tm].col}">${tdot(tm)} ${esc(tname(tm))}</button>`).join('')}</div></div>` : `<div class="pcard" style="margin-top:14px"><h3 style="margin:0 0 6px">Votre équipe</h3><p class="muted" style="margin:0 0 12px">Ce téléphone suit une seule équipe.</p><div class="pnames">${TT.map(tm => `<button data-pteam="${tm}" style="border-color:${TEAMS2[tm].col}">${tdot(tm)} ${esc(tname(tm))}</button>`).join('')}</div></div>`;
+` : `<div class="pcard" style="margin-top:14px"><h3 style="margin:0 0 6px">Votre équipe</h3><p class="muted" style="margin:0 0 12px">Ce téléphone suit une seule équipe.</p><div class="pnames">${TT.map(tm => `<button data-pteam="${tm}" style="border-color:${TEAMS2[tm].col}">${tdot(tm)} ${esc(tname(tm))}</button>`).join('')}</div></div>`;
   else if (!n.open) body = `<div class="pcard" style="margin-top:14px;text-align:center"><div style="font-size:40px">🔥</div><h3>Le Flambeau n'est pas encore allumé</h3><p class="muted">Les directeurs financiers détiennent le code de Cotonou. Dès qu'il est trouvé, la carte au trésor s'ouvre ici.</p></div>`;
   else {
     const tabs = [['carte', 'Carte'], ['scores', 'Scores'], ['moi', 'Moi'], ['savoir', 'Le saviez-vous ?']];
