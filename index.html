@@ -804,11 +804,14 @@ const ST2 = [
     mini: [] }
 ];
 const STMAP = Object.fromEntries(ST2.map(s => [s.id, s]));
+/* Le duel des cartes : à chaque station, l'animateur lit les cartes mini-jeux du lieu ; la première équipe qui répond juste gagne la carte */
+const DUEL = { zin: ['zin'], bas: ['bas', 'maro'], maro: [], mus: ['mus'], porte: [] };
+const DUELLAB = { zin: 'Les cartes de Zinsou', bas: 'Les cartes de la basilique et du temple (lues en passant, ou à l\'arrivée place Maro)', maro: 'Les cartes de Maro', mus: 'Les cartes du bus (sans la 1re carte, celle du fort)' };
 /* La tenture : 9 pièces en 3 × 3. Les 5 pièces des stations, et 4 pièces cachées dans les mini-jeux. */
 const PIECES = [
-  { id: 'zin', lab: 'Zinsou', st: 'zin' }, { id: 'm-bas', lab: 'Chemin de la basilique', mini: 'bas' }, { id: 'bas', lab: 'Place Maro', st: 'bas' },
-  { id: 'm-zin', lab: 'Chemin de Zinsou', mini: 'zin' }, { id: 'porte', lab: 'Porte du Non-Retour', st: 'porte' }, { id: 'm-maro', lab: 'Chemin de Maro', mini: 'maro' },
-  { id: 'maro', lab: 'Place Chacha', st: 'maro' }, { id: 'm-mus', lab: 'Chemin du bus', mini: 'mus' }, { id: 'mus', lab: 'Route des Esclaves', st: 'mus' }
+  { id: 'zin', lab: 'Zinsou', st: 'zin' }, { id: 'm-bas', lab: 'Cartes de la basilique', mini: 'bas' }, { id: 'bas', lab: 'Place Maro', st: 'bas' },
+  { id: 'm-zin', lab: 'Cartes de Zinsou', mini: 'zin' }, { id: 'porte', lab: 'Porte du Non-Retour', st: 'porte' }, { id: 'm-maro', lab: 'Cartes de Maro', mini: 'maro' },
+  { id: 'maro', lab: 'Place Chacha', st: 'maro' }, { id: 'm-mus', lab: 'Cartes du bus', mini: 'mus' }, { id: 'mus', lab: 'Route des Esclaves', st: 'mus' }
 ];
 const role = () => { try { return localStorage.getItem('aw-role') || ''; } catch (e) { return ''; } };
 const shuffle2 = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -1010,7 +1013,7 @@ V2.carte = () => {
   return `
   <p class="eyebrow">${Lx('La carte au trésor', 'The treasure map')}</p>
   <h2>${Lx('Cinq lieux, une tenture', 'Five places, one hanging')}</h2>
-  <p class="lead">${Lx("Tout le monde commence à la Fondation Zinsou et finit à la Porte du Non-Retour. Entre les deux, le parcours est le même pour les deux équipes : place Maro, place Chacha, puis la Route des Esclaves en bus. Les mini-jeux du chemin révèlent le lieu suivant.", 'Everyone starts at the Zinsou Foundation and ends at the Door of No Return. In between, each team picks its route on its map. The mini-games along the way lead to the next place.')}</p>
+  <p class="lead">${Lx("Tout le monde commence à la Fondation Zinsou et finit à la Porte du Non-Retour. Entre les deux, le parcours est le même pour les deux équipes : place Maro, place Chacha, puis la Route des Esclaves en bus. À chaque station, le duel des cartes ouvre le jeu : la première équipe qui répond juste gagne la carte.", 'Everyone starts at the Zinsou Foundation and ends at the Door of No Return. In between, each team picks its route on its map. The mini-games along the way lead to the next place.')}</p>
   <div class="card" style="margin-top:14px;padding:0">${ST2.map(st => `<button class="maprow" data-go="${idx(st.id)}" style="display:flex;width:100%;justify-content:space-between;align-items:center;gap:10px;padding:14px 16px;background:none;border:0;border-bottom:1px solid var(--line);color:inherit;text-align:left;cursor:pointer;font:inherit"><span><b>${st.lieu}</b><br><span class="muted" style="font-size:13px">${Lx(st.jeu, st.jen)} · ${order[st.id]}</span></span><span style="white-space:nowrap">${stat(st.id)}</span></button>`).join('')}</div>
   ${notes(["Ouvre la station où se trouve l'équipe : l'ordre des tabs n'a pas d'importance.", "Les jeux des stations sont des duels : les deux équipes s'y retrouvent. La première arrivée gagne 1 point et commence le jeu.", "Chaque accompagnateur AWENI peut valider depuis son téléphone : tout est synchronisé."])}`;
 };
@@ -1035,15 +1038,14 @@ V2.st = id => {
   <div class="card" style="margin-top:14px"><h3>${Lx('Qui gagne la pièce', 'Who wins the piece')} « ${PIECES.find(p => p.st === id).lab} » ?</h3>
     <div class="row">${s.coll ? `<button class="btn ${w === 2 ? '' : 'ghost'}" data-n2res="${id}:2">${tdot(2)} ${Lx('Le groupe a réussi le circuit', 'The group completed the circuit')}</button>` : TT.map(t => `<button class="btn ${w === t ? '' : 'ghost'} ${me === String(t) ? 'mine' : ''}" data-n2res="${id}:${t}">${tdot(t)} ${tname(t)}</button>`).join('')}</div>
     <p class="muted" style="margin:8px 0 0;font-size:13px">${w === null ? Lx('Pas encore de résultat. Un second clic efface le résultat.', 'No result yet. A second click clears it.') : (w === 2 ? Lx('Pièce gagnée par tous : 4 points pour chaque équipe.', 'Piece won by all: 4 points for each team.') : Lx(`${tname(w)} gagne la pièce et 4 points, ${tname(other(w))} marque 3 points.`, `${tname(w)} wins the piece and 4 points, ${tname(other(w))} scores 3 points.`))}</p></div>
-  ${mp ? `<div class="card" style="margin-top:14px"><h3>${Lx('La pièce cachée sur le chemin', 'The piece hidden along the way')} · ${mp.lab}</h3>
-    <div class="row">${TT.map(t => `<button class="btn small ${n.pc[mp.id] === t ? '' : 'ghost'} ${me === String(t) ? 'mine' : ''}" data-n2piece="${mp.id}:${t}">${Lx('Trouvée par', 'Found by')} ${tname(t)}</button>`).join('')}<button class="btn small ${n.pc[mp.id] === 'x' ? '' : 'ghost'}" data-n2piece="${mp.id}:x">${Lx('Non trouvée : à rejouer à la Porte', 'Not found: replayed at the Door')}</button></div></div>` : ''}
+  ${(DUEL[id] || []).map(m => { const pc = PIECES.find(p => p.mini === m); return `<div class="card" style="margin-top:14px"><h3>Le duel des cartes · ${DUELLAB[m]}</h3>
+    <p class="muted" style="margin:0 0 8px;font-size:13px">Lis les cartes une par une. La première équipe qui lève la main et répond juste gagne la carte. Après chaque carte, lis le « Le saviez-vous ? ». L'équipe qui gagne le plus de cartes remporte la pièce de tenture et 2 points ; en cas d'égalité, celle qui a gagné la devinette.</p>
+    <details id="mini-${m}" ${OPEN['mini-' + m] ? 'open' : ''}><summary class="muted">Les questions et les réponses (ne pas projeter)</summary><ol style="margin:8px 0 0 18px;padding:0;font-size:13px">${STMAP[m].mini.map(([q, a]) => `<li style="margin-bottom:4px">${q} <i class="muted">→ ${a}</i></li>`).join('')}</ol></details>
+    <div class="row" style="margin-top:10px">${TT.map(t => `<button class="btn small ${n.pc[pc.id] === t ? '' : 'ghost'} ${me === String(t) ? 'mine' : ''}" data-n2piece="${pc.id}:${t}">${Lx('Gagnée par', 'Won by')} ${tname(t)}</button>`).join('')}<button class="btn small ${n.pc[pc.id] === 'x' ? '' : 'ghost'}" data-n2piece="${pc.id}:x">${Lx('Pas jouée : à rejouer à la Porte', 'Not played: replayed at the Door')}</button></div></div>`; }).join('')}
   ${s.final ? `<div class="card" style="margin-top:14px"><h3>${Lx('Les pièces non trouvées', 'The pieces not found')}</h3>
     ${lostMini().length ? lostMini().map(p => `<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:8px 0"><span>${p.lab}</span><span class="row">${TT.map(t => `<button class="btn small ${n.rp[p.id] === t ? '' : 'ghost'}" data-n2rp="${p.id}:${t}">${tname(t)}</button>`).join('')}</span></div>`).join('') : `<p class="muted" style="margin:0">${Lx('Toutes les pièces du chemin ont été trouvées.', 'Every piece along the way was found.')}</p>`}</div>` : ''}
   ${s.oeuvres ? `<details class="card" id="oe-${id}" ${OPEN['oe-' + id] ? 'open' : ''} style="margin-top:14px"><summary><b>Les deux œuvres</b> <span class="muted">· à lire une fois les deux puzzles terminés</span></summary><p class="muted" style="margin:10px 0">${s.oeuvres.intro}</p>${s.oeuvres.list.map(([t, st, tx, qq]) => `<div style="margin:12px 0"><b>${t}</b><br><i>${st}</i><p style="margin:6px 0">${tx}</p><p style="margin:0"><b>La question à retenir :</b> ${qq}</p></div>`).join('')}<p style="margin:10px 0 0"><b>Le lien entre les deux œuvres.</b> ${s.oeuvres.lien}</p></details>` : ''}
   ${s.q3 ? `<details class="card" id="q3-${id}" ${OPEN['q3-' + id] ? 'open' : ''} style="margin-top:14px"><summary><b>Les 3 questions du bus</b> <span class="muted">· pour le guide, ne pas projeter</span></summary><ol class="rules" style="margin-top:10px">${s.q3.map(([q, r]) => `<li><b>${q}</b><br><span class="muted">${r}</span></li>`).join('')}</ol></details>` : ''}
-  ${s.mini.length ? `<details class="card" id="mini-${id}" ${OPEN['mini-' + id] ? 'open' : ''} style="margin-top:14px"><summary><b>Les 4 mini-jeux du chemin</b> <span class="muted">· ne pas projeter</span></summary>
-    <p class="muted" style="font-size:12.5px;margin:8px 0">Une carte par mini-jeu, cachée sur le chemin. Réunies, les 4 cartes forment l'image de la station. L'une d'elles cache la pièce de tenture.</p>
-    <ol style="margin:2px 0 0 18px;padding:0;font-size:13px">${s.mini.map(([q, a]) => `<li style="margin-bottom:4px">${q} <i class="muted">→ ${a}</i></li>`).join('')}</ol></details>` : ''}
   <div class="row" style="margin-top:18px">${s.final ? next2('Le Pacte', 'The Pact') : `<button class="btn" data-go="${steps2().findIndex(x => x.id === 'carte')}">${Lx('Retour à la carte', 'Back to the map')}</button>`}${redo2('st:' + id)}</div>
   ${notes(s.final ? ["Arrivée en silence. Le guide raconte la Porte, puis on passe sur l'esplanade.", "Les pièces non trouvées d'abord (en duel), puis le circuit tous ensemble, puis le Pacte et la tenture."] : ["Les deux équipes jouent la station en même temps : c'est un duel.", "Les accompagnateurs AWENI de chaque équipe valident sur leur téléphone. Un second clic sur un bouton efface le choix.", "Le guide raconte le lieu avant le jeu."])}`;
 };
@@ -1110,7 +1112,7 @@ function redoN2(what) {
   if (what === 'savoir') n.q = fresh2().q;
   if (what.startsWith('st:')) {
     const id = what.slice(3); delete n.res[id]; if (n.arr) delete n.arr[id]; if (n.vis) delete n.vis[id];
-    const mp = PIECES.find(p => p.mini === id); if (mp) { delete n.pc[mp.id]; delete n.rp[mp.id]; }
+    (DUEL[id] || []).forEach(m => { const mp = PIECES.find(p => p.mini === m); if (mp) { delete n.pc[mp.id]; delete n.rp[mp.id]; } });
     if (id === 'porte') n.rp = {};
   }
 }
@@ -1298,7 +1300,7 @@ function pDetail(t) {
   const others = ['zin', 'bas', 'maro'].filter(x => x !== id && dist(id, x)).map(x => { const d = dist(id, x); return `<div class="pdrow"><span>${x === 'zin' ? 'Fondation Zinsou' : esc(stName(x, t))}</span><b>${d[0] >= 1000 ? (d[0] / 1000).toFixed(1).replace('.', ',') + ' km' : d[0] + ' m'} · ${d[1]} min</b></div>`; }).join('');
   return `<div class="pcard"><div class="pk">${id === 'zin' ? 'Départ' : rv ? 'Station trouvée' : 'Station mystère ' + MSYM[id]}</div>
     <h3>${esc(id === 'zin' || rv ? STMAP[id].lieu : 'Station ?')}</h3>
-    ${rv ? `<p class="muted" style="margin:0 0 8px;font-size:13px">${esc(STMAP[id].pole)} · ${esc(STMAP[id].jeu)}${w !== null ? ` · gagnée par ${esc(tname(w))}` : ''}</p>` : `<p class="muted" style="margin:0 0 8px;font-size:13px">Les 4 cartes mini-jeux du chemin vous diront quel est ce lieu.</p>`}
+    ${rv ? `<p class="muted" style="margin:0 0 8px;font-size:13px">${esc(STMAP[id].pole)} · ${esc(STMAP[id].jeu)}${w !== null ? ` · gagnée par ${esc(tname(w))}` : ''}</p>` : `<p class="muted" style="margin:0 0 8px;font-size:13px">Votre animateur vous fera découvrir ce lieu en arrivant.</p>`}
     <div class="pk" style="margin-top:6px">À pied depuis ici</div>${others}</div>`;
 }
 
