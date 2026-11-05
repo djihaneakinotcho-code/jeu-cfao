@@ -755,11 +755,11 @@ const TEAMS2 = [
 ];
 const TT = [0, 1];
 /* Bottle Match : combinaisons des manches (indices des 6 couleurs), aucune couleur à la même place d'une manche à l'autre */
-const BMC = [[0, 1, 2, 3, 4, 5], [2, 4, 0, 5, 1, 3], [4, 3, 5, 1, 0, 2], [5, 2, 1, 4, 3, 0]];
-const BMDEF = ['Rouge', 'Jaune', 'Bleu', 'Vert', 'Orange', 'Violet'];
+const BMC = [[0, 1, 2, 3, 4, 0], [3, 4, 1, 1, 0, 2], [4, 2, 3, 0, 1, 3], [1, 3, 0, 4, 2, 4]];
+const BMDEF = ['Rouge', 'Orange', 'Noir', 'Vert', 'Jaune'];
 const BMHEX = { rouge: '#D93A2B', jaune: '#FBBC04', bleu: '#2F6FD6', vert: '#2E9E5B', orange: '#F07C1E', violet: '#7A4FC4', rose: '#E86AA6', noir: '#141414', blanc: '#F5F1E8', marron: '#8B5A2B', gris: '#9A9A9A', turquoise: '#1FB5B0', beige: '#E3C9A0', bordeaux: '#7D1E2C' };
 const BM = () => { const n = N(); n.bm = n.bm || { r: 0, g: {}, w: {} }; return n.bm; };
-const bmCols = () => { const c = (N().bmc || BMDEF).slice(0, 6); while (c.length < 6) c.push(BMDEF[c.length]); return c; };
+const bmCols = () => { const c = (N().bmc || BMDEF).slice(0, BMDEF.length); while (c.length < BMDEF.length) c.push(BMDEF[c.length]); return c; };
 const bmHex = c => BMHEX[String(c).trim().toLowerCase()] || '#777';
 const bmWins = t => Object.values(BM().w).filter(x => x === t).length;
 function bmCombo(r) { const c = bmCols(); return BMC[r].map(k => c[k]); }
@@ -776,7 +776,7 @@ function bmCard(id) {
     <div class="row" style="margin-top:10px"><span class="muted" style="font-size:13px">Gagnante de la manche :</span>${TT.map(t => `<button class="btn small ${b.w[r] === t ? '' : 'ghost'}" data-n2bmw="${r}:${t}">${tdot(t)} ${tname(t)}</button>`).join('')}</div>
     <p class="muted" style="margin:8px 0 0;font-size:13px">Manches gagnées : ${TT.map(t => `${tname(t)} ${bmWins(t)}`).join(' · ')}. ${done ? 'Passez à la manche suivante.' : ''} La première équipe à 2 manches gagne la station.</p>
     <details style="margin-top:10px"><summary class="muted">Vérifier la combinaison de cette manche (ne pas montrer)</summary>${bmSwatches(r)}</details>
-    <details style="margin-top:6px"><summary class="muted">Les couleurs des palettes</summary><p class="muted" style="font-size:12.5px;margin:6px 0">Les 6 couleurs, séparées par des virgules, dans l'ordre de votre choix.</p><input data-n2bmc value="${esc(bmCols().join(', '))}" style="width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:inherit"></details>
+    <details style="margin-top:6px"><summary class="muted">Les couleurs des palettes</summary><p class="muted" style="font-size:12.5px;margin:6px 0">Les 5 couleurs, séparées par des virgules. 6 emplacements par manche : une couleur revient deux fois.</p><input data-n2bmc value="${esc(bmCols().join(', '))}" style="width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:inherit"></details>
   </div>`;
 }
 
@@ -790,7 +790,7 @@ const ST2 = [
       lien: "L'une imagine le retour des ancêtres vers leur terre d'origine. L'autre parle des cultures qui ont traversé l'océan et continué de vivre ailleurs. Une même question : comment transmettre ce que l'histoire a tenté de séparer ? Gardez-la en tête jusqu'à la Porte du Non-Retour." },
     mini: [['Je suis une maison de 1922, de style afro-brésilien, et mon nom est écrit sur ma façade. Qui suis-je ?', 'La Villa Ajavon, musée de la Fondation Zinsou'], ["Dans mes salles, pas d'objets anciens : des œuvres d'artistes africains d'aujourd'hui. Quel musée suis-je ?", "Un musée d'art contemporain"], ['Quelle famille béninoise a créé cette fondation, d\'abord à Cotonou ?', 'La famille Zinsou'], ['Office Services · Comment le client paie-t-il le printing ?', 'Au coût copie : selon le nombre de copies']] },
   { id: 'bas', lieu: 'Place de la basilique', pole: 'Energy Services', jeu: 'Le bon ordre (Bottle Match)', jen: 'The right order (Bottle Match)', secs: 480,
-    regle: ["Chaque équipe a son meuble et son jeu de 6 palettes. Les deux équipes jouent en même temps, sur la même combinaison.", "À chaque manche, l'équipe désigne son gardien du code : il reçoit la combinaison sur son téléphone, se place devant le tiroir et ne répond que par oui ou par non.", "Un joueur place les palettes. Au premier « non », le joueur suivant prend sa place.", "La première équipe qui trouve la combinaison gagne la manche. On remet les palettes en vrac, on change de gardien, et on passe à la manche suivante.", "3 manches (une manche bonus si la station est en avance) : la première équipe à 2 manches gagne la station, 4 points et la pièce de la tenture."],
+    regle: ["Chaque équipe a son meuble et ses palettes de 5 couleurs (rouge, orange, noir, vert, jaune). La combinaison compte 6 emplacements : une couleur revient deux fois. Les deux équipes jouent en même temps, sur la même combinaison.", "À chaque manche, l'équipe désigne son gardien du code : il reçoit la combinaison sur son téléphone, se place devant le tiroir et ne répond que par oui ou par non.", "Un joueur place les palettes. Au premier « non », le joueur suivant prend sa place.", "La première équipe qui trouve la combinaison gagne la manche. On remet les palettes en vrac, on change de gardien, et on passe à la manche suivante.", "3 manches (une manche bonus si la station est en avance) : la première équipe à 2 manches gagne la station, 4 points et la pièce de la tenture."],
     mini: [['Je suis une grande église catholique, construite en 1909 au cœur de la vieille ville. Qui suis-je ?', "La basilique de l'Immaculée Conception"], ['Chaque 10 janvier, le Bénin célèbre une fête nationale dont Ouidah est la capitale. Laquelle ?', 'La fête du Vodun (les Vodun Days)'], ['Ouidah est à environ combien de kilomètres de Cotonou : 10, 40 ou 100 ?', 'Environ 40 km'], ['Energy Services · Parmi ces installations, laquelle relève du courant faible : groupe électrogène, poste de transformation, vidéosurveillance, tableau électrique ?', 'La vidéosurveillance']] },
   { id: 'maro', lieu: 'Quartier Maro', pole: 'Lift', jeu: 'Le panneau des étages', jen: 'The floor panel', secs: 480,
     regle: ["Deux bornes, une par équipe, avec 8 motifs chacune : les 8 « étages » du panneau.", "Au centre, un paquet de cartes : des motifs des bornes, des motifs qui n'existent pas et des cartes neutres.", "À tour de rôle, chaque équipe tire une carte. Si le motif est sur sa borne, elle le pose dessus. Sinon, la carte est défaussée.", "La première équipe qui remplit ses 8 étages gagne la pièce de la tenture."],
@@ -1153,7 +1153,7 @@ function click2(d, t) {
 function input2(t, d) {
   const n = N();
   if (d.n2role !== undefined) { try { localStorage.setItem('aw-role', t.value); } catch (e) {} render(); return true; }
-  if (d.n2bmc !== undefined) { n.bmc = t.value.split(',').map(x => x.trim()).filter(Boolean).slice(0, 6); save(); return true; }
+  if (d.n2bmc !== undefined) { n.bmc = t.value.split(',').map(x => x.trim()).filter(Boolean).slice(0, BMDEF.length); save(); return true; }
   if (d.n2pf !== undefined) { n.players[+d.n2pf].fonction = t.value; save(); return true; }
   if (d.n2pn !== undefined) { n.players[+d.n2pn].name = t.value; n.teams = null; save(); const b = document.querySelector('[data-n2teams]'); if (b) b.disabled = n.players.filter(p => p.name.trim()).length < 4; return true; }
   if (d.c2 !== undefined) { t.value = t.value.replace(/\D/g, '').slice(0, 1); if (t.value && +d.c2 < 3) { const nx = $('#c2' + (+d.c2 + 1)); if (nx) nx.focus(); } return true; }
