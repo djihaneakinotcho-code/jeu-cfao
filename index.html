@@ -1482,15 +1482,17 @@ function addRegistrant(lvl, r) {
 }
 function inscritsCard(lvl) {
   const L = lvl === 1 ? S.players : N().players, have = new Set(L.map(p => p.rid).filter(Boolean));
-  const mine = INSCRITS.filter(r => (r.lvl || 2) === lvl), fresh = mine.filter(r => !have.has(r.id));
+  const ign = new Set((lvl === 1 ? S.ign : N().ign) || []);
+  const mine = INSCRITS.filter(r => (r.lvl || 2) === lvl && !ign.has(r.id)), fresh = mine.filter(r => !have.has(r.id));
   const met = m => m === 'trans' || m === 'dir' ? 'pas de pôle' : m || '';
   return `<div class="card stack" style="margin-top:14px"><h3>Les inscriptions des joueurs <span class="muted" style="font-size:13px">· ${mine.length} inscrit${mine.length > 1 ? 's' : ''}</span></h3>
     <p style="margin:0">Chaque joueur s'inscrit depuis l'écran d'accueil (« Je suis joueur »). Ajoutez les inscrits à la partie : un prénom déjà dans la liste est reconnu, il n'est pas ajouté deux fois.</p>
-    ${mine.length ? `<div style="font-size:13.5px">${mine.map(r => `<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:6px 0"><span><b>${esc(r.name || '')}</b> <span class="muted">· ${esc(r.pays || '')} ${r.metier ? '· ' + esc(met(r.metier)) : ''} ${r.fonction ? '· ' + esc(r.fonction) : ''}</span></span><span class="muted">${have.has(r.id) ? 'dans la partie ✓' : 'nouveau'}</span></div>`).join('')}</div>` : `<p class="muted" style="margin:0">${typeof SY !== 'undefined' && SY.db ? 'Aucune inscription pour le moment.' : 'Hors ligne : les inscriptions arrivent seulement quand les téléphones sont connectés.'}</p>`}
+    ${mine.length ? `<div style="font-size:13.5px">${mine.map(r => `<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:6px 0"><span><b>${esc(r.name || '')}</b> <span class="muted">· ${esc(r.pays || '')} ${r.metier ? '· ' + esc(met(r.metier)) : ''} ${r.fonction ? '· ' + esc(r.fonction) : ''}</span></span><span class="row" style="gap:8px"><span class="muted">${have.has(r.id) ? 'dans la partie ✓' : 'nouveau'}</span><button class="btn small ghost" data-nrm="${lvl}:${r.id}" title="Retirer (test, doublon)">Retirer</button></span></div>`).join('')}</div>` : `<p class="muted" style="margin:0">${typeof SY !== 'undefined' && SY.db ? 'Aucune inscription pour le moment.' : 'Hors ligne : les inscriptions arrivent seulement quand les téléphones sont connectés.'}</p>`}
     <div class="row"><button class="btn small" data-nimp="${lvl}" ${fresh.length ? '' : 'disabled'}>Ajouter ${fresh.length || ''} nouveau${fresh.length > 1 ? 'x' : ''} à la partie</button>${lvl === 2 && N().teams && fresh.length ? '<span class="muted" style="font-size:13px">Les équipes sont déjà formées : refaites-les après l\'ajout.</span>' : ''}</div></div>`;
 }
 function importInscrits(lvl) {
-  INSCRITS.filter(r => (r.lvl || 2) === lvl).forEach(r => addRegistrant(lvl, r));
+  const ign = new Set((lvl === 1 ? S.ign : N().ign) || []);
+  INSCRITS.filter(r => (r.lvl || 2) === lvl && !ign.has(r.id)).forEach(r => addRegistrant(lvl, r));
   save(); render();
 }
 
@@ -1569,6 +1571,18 @@ async function sendCode(me) {
     try { await Promise.race([SY.db.collection('coffre').doc('c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)).set(row), new Promise(r => setTimeout(r, 5000))]); } catch (e) { PM.cmsg = "L'envoi n'est pas passé. Vérifiez la connexion."; return; }
   } else if (v === CODE) { S.fin.open = true; S.fin.win = row.team; S.fin.d = CODE.split(''); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
   PM.cmsg = v === CODE ? 'ok' : 'ko';
+}
+
+/* retirer un inscrit (test, doublon) : il disparaît de la liste et de la partie, et n'est plus réimporté */
+function removeInscrit(lvl, rid) {
+  const o = lvl === 1 ? S : N(), L = lvl === 1 ? S.players : N().players;
+  o.ign = (o.ign || []).filter(x => x !== rid).concat(rid);
+  const k = L.findIndex(p => p && p.rid === rid);
+  if (k >= 0) {
+    L[k] = lvl === 1 ? { name: '', nat: '', country: '', k: null, used: false } : { name: '', pays: '', metier: '' };
+    if (lvl === 2 && N().teams) N().teams = N().teams.map(t => t.filter(i => i !== k));
+  }
+  save(); render();
 }
 
 /* ---------- State ---------- */
@@ -2081,6 +2095,7 @@ document.addEventListener('click', ev => {
   const t = ev.target.closest('button'); if (!t || t.disabled) return;
   const d = t.dataset;
   if (d.nimp) return importInscrits(+d.nimp);
+  if (d.nrm) { const [lv, rid] = d.nrm.split(':'); if (!arm(t, 'Confirmer : retirer')) return; return removeInscrit(+lv, rid); }
   if (d.capt) { const [t, i] = d.capt.split(':').map(Number); S.capt = (S.capt || [null, null]).slice(); S.capt[t] = S.capt[t] === i ? null : i; save(); return render(); }
   if (d.profil !== undefined) { PM.mode = null; PM.gstep = ''; PM.reg = false; PM.lvl = null; pmSave(); GATE = true; PLAYER = false; window.scrollTo({ top: 0 }); return render(); }
   if (d.go !== undefined) return go(+d.go);
@@ -2109,7 +2124,7 @@ document.addEventListener('click', ev => {
   if (d.undraw !== undefined) { const ps = active(); if (S.turn <= 0) return; S.turn--; const pi = ps[S.turn] ? ps[S.turn].i : null; const c = S.deck.find(x => x.by === pi); if (c) c.by = null; if (pi !== null) S.players[pi].k = null; S.lastReveal = null; S.pairs = null; save(); return render(); }
   if (d.unans !== undefined) { delete S.quiz.ans[S.quiz.i]; S.quiz.done = false; save(); return render(); }
   if (d.redo1 !== undefined) { if (!arm(t, 'Confirmer : effacer les résultats de ce jeu')) return; const F = fresh(), k = d.redo1; if (k === 'draw') { S.deck = null; S.pairs = null; S.turn = 0; S.lastReveal = null; S.players.forEach(p => { p.k = null; p.used = false; }); } else S[k] = F[k]; save(); return render(); }
-  if (d.wipe !== undefined) { if (!arm(t, 'Confirmer : tout effacer')) return; if (d.wipe === '1') { const pl = S.players.map(p => ({ ...p, k: null, used: false })), n2 = S.n2; S = fresh(); S.players = pl; S.n2 = n2; S.level = 1; } else if (d.wipe === '2') { const pl = S.n2.players; S.n2 = fresh2(); S.n2.players = pl; S.level = 2; } else S = fresh(); save(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+  if (d.wipe !== undefined) { if (!arm(t, 'Confirmer : tout effacer')) return; if (d.wipe === '1') { const pl = S.players.map(p => ({ ...p, k: null, used: false })), n2 = S.n2; S = fresh(); S.players = pl; S.n2 = n2; S.level = 1; } else if (d.wipe === '2') { const pl = S.n2.players, ig = S.n2.ign; S.n2 = fresh2(); S.n2.players = pl; S.n2.ign = ig; S.level = 2; } else S = fresh(); save(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
   if (d.who !== undefined) { const a = S.quiz.ans[S.quiz.i]; if (a) { a.who = a.who === +d.who ? null : +d.who; save(); render(); } return; }
   if (d.ans !== undefined) { const i = S.quiz.i; if (S.quiz.ans[i]) return; const ok = +d.ans === QUIZ[i].a; S.quiz.ans[i] = { c: +d.ans, ok }; if (!ok) S.quiz.ans[i].rp = relaisPair(i); save(); return render(); }
   if (d.rans !== undefined) { const a = S.quiz.ans[S.quiz.i]; if (!a || a.rc !== undefined) return; a.rc = +d.rans; a.rok = +d.rans === QUIZ[S.quiz.i].a; save(); return render(); }
