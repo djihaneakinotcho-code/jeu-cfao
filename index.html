@@ -811,6 +811,10 @@ const DQ = { zin: [0, 1], bas: [0, 1], maro: [0, 1], mus: [0, 1] };      /* les 
 const DSV = { zin: 3, bas: 3, maro: 3, mus: 3 };                     /* la carte « Le saviez-vous ? », remise à l'équipe gagnante de la station */
 const DST = { zin: 'zin', bas: null, maro: 'bas', mus: 'mus' };        /* station où se joue chaque jeu de cartes */
 const dq = (m, k) => ((N().dq || {})[m] || [null, null])[k];
+/* Les cartes bonus : pour chaque question, qui a trouvé dans chaque équipe (chaque animateur dans son bus) */
+const cq = (m, j, t) => { const a = ((N().cq || {})[m] || {})[j]; return a && a[t] !== undefined ? a[t] : null; };
+const cardsOf = t => { let c = 0; Object.values(N().cq || {}).forEach(o => Object.values(o).forEach(a => { if (a && a[t] !== null && a[t] !== undefined) c++; })); return c; };
+const cardsPerso = i => { let c = 0; Object.values(N().cq || {}).forEach(o => Object.values(o).forEach(a => { if (a && (a[0] === i || a[1] === i)) c++; })); return c; };
 const DUELLAB = { zin: 'Les cartes de Zinsou · posées dans le bus, en partant du Native Hotel', bas: 'Les cartes de la basilique · posées dans le bus, en partant de Zinsou', maro: 'Les cartes de Maro · posées à la place Chacha', mus: 'Les cartes du fort · posées à l\'Arbre du Retour (le fort est en travaux)' };
 const DPRIZE = { zin: "l'équipe gagnante de Zinsou", bas: "la première équipe qui répond à la question du guide, posée à l'arrivée place Maro quand les deux bus sont là (par exemple : quel monument fait face au temple des Pythons ?)", maro: "l'équipe gagnante du Bottle Match, à la place Maro", mus: "l'équipe gagnante de l'Arbre du Retour" };
 /* La tenture : 9 pièces en 3 × 3. Les 5 pièces des stations, et 4 pièces cachées dans les mini-jeux. */
@@ -864,10 +868,10 @@ function teamPts(t) {
   let s = n.bonus ? 2 : 0;
   s += qOk(t);
   ST2.forEach(st => { const w = winner(st.id); if (w !== null) s += (w === t || w === 2) ? 4 : 3; if (firstArr(st.id) === t) s += 1; });
-  Object.values(n.dq || {}).forEach(a => (a || []).forEach(x => { if (x === t || x === 2) s += 1; }));
+  s += cardsOf(t);
   return s;
 }
-function pts2() { const n = N(), o = {}; (n.teams || []).forEach((tm, t) => tm.forEach(i => { if (n.players[i] && n.players[i].name.trim()) o[i] = (n.open ? 1 : 0) + qOk(t) + ST2.filter(st => winner(st.id) === t || winner(st.id) === 2).length + ((n.pb || {})[i] || 0); })); return o; }
+function pts2() { const n = N(), o = {}; (n.teams || []).forEach((tm, t) => tm.forEach(i => { if (n.players[i] && n.players[i].name.trim()) o[i] = (n.open ? 1 : 0) + qOk(t) + ST2.filter(st => winner(st.id) === t || winner(st.id) === 2).length + ((n.pb || {})[i] || 0) + cardsPerso(i); })); return o; }
 function given(t) { return N().votes[t] === 'give'; }
 function litTeams() { if (!N().lit) return []; const l = TT.filter(given); l.push(2); if (N().flam !== null && !l.includes(N().flam)) l.push(N().flam); return l; }
 
@@ -1033,6 +1037,7 @@ V2.st = id => {
   return `
   <div class="card row" style="margin-bottom:12px;justify-content:space-between"><span><b>Ce téléphone suit</b> <span class="muted" style="font-size:12.5px">· pour repérer ses boutons</span></span>
     <select data-n2role style="background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:7px 9px"><option value="">Les deux équipes (coordination)</option>${TT.map(t => `<option value="${t}" ${me === String(t) ? 'selected' : ''}>Équipe ${TEAMS2[t].fr}</option>`).join('')}</select></div>
+  ${(n.teams || [[], []]).map((tm, t) => me !== '' && me !== String(t) ? '' : `<div class="card" style="margin-bottom:12px;padding:10px 14px;border-color:${TEAMS2[t].col}"><b class="pill2">${tdot(t)}${tname(t)}</b> <span class="muted" style="font-size:13px">· ${tm.filter(i => n.players[i] && n.players[i].name.trim()).map(i => esc(n.players[i].name)).join(', ') || 'équipe pas encore formée'}</span></div>`).join('')}
   <p class="eyebrow">${s.final ? Lx('Station finale', 'Final station') : Lx('Station', 'Station')} · ${s.lieu} · ${s.pole}</p>
   <h2>${Lx(s.jeu, s.jen)}</h2>
   <div class="two" style="margin-top:12px">
@@ -1046,12 +1051,13 @@ V2.st = id => {
   <div class="card" style="margin-top:14px"><h3>${Lx('Qui gagne la pièce', 'Who wins the piece')} « ${PIECES.find(p => p.st === id).lab} » ?</h3>
     <div class="row">${s.coll ? `<button class="btn ${w === 2 ? '' : 'ghost'}" data-n2res="${id}:2">${tdot(2)} ${Lx('Le groupe a réussi le circuit', 'The group completed the circuit')}</button>` : TT.map(t => `<button class="btn ${w === t ? '' : 'ghost'} ${me === String(t) ? 'mine' : ''}" data-n2res="${id}:${t}">${tdot(t)} ${tname(t)}</button>`).join('')}</div>
     <p class="muted" style="margin:8px 0 0;font-size:13px">${w === null ? Lx('Pas encore de résultat. Pour corriger, touchez l\'autre équipe ; pour tout effacer, « Rejouer » en bas.', 'No result yet. A second click clears it.') : (w === 2 ? Lx('Pièce gagnée par tous : 4 points pour chaque équipe.', 'Piece won by all: 4 points for each team.') : Lx(`${tname(w)} gagne la pièce et 4 points, ${tname(other(w))} marque 3 points.`, `${tname(w)} wins the piece and 4 points, ${tname(other(w))} scores 3 points.`))}</p></div>
-  ${(DUEL[id] || []).map(m => { const C = STMAP[m].mini, pc = PIECES.find(p => p.mini === m), own = pieceOwner(pc); return `<div class="card" style="margin-top:14px"><h3>Le duel des cartes · ${DUELLAB[m]}</h3>
-    <p class="muted" style="margin:0 0 8px;font-size:13px">Lis la devinette et le « Le saviez-vous ? » pour faire deviner le lieu. Avec 2 bus, chaque animateur pose les questions dans le sien : chaque équipe qui répond juste marque 1 point (touche « Les deux équipes » si les deux trouvent) ; ajoute 1 point perso à celui qui a trouvé (panneau « Points perso »).</p>
-    ${DQ[m].map((k, j) => `<div style="border-top:1px solid var(--line);padding:8px 0"><b>${j ? 'Le saviez-vous ?' : 'Devinette'}.</b> ${C[k][0]} <details style="display:inline"><summary class="muted" style="display:inline;cursor:pointer">réponse</summary> <i>${C[k][1]}</i></details>
-      <div class="row" style="margin-top:6px">${TT.map(t => `<button class="btn small ${dq(m, j) === t ? '' : 'ghost'} ${me === String(t) ? 'mine' : ''}" data-n2dq="${m}:${j}:${t}">${Lx('Trouvée par', 'Found by')} ${tname(t)}</button>`).join('')}<button class="btn small ${dq(m, j) === 2 ? '' : 'ghost'}" data-n2dq="${m}:${j}:2">Les deux équipes</button></div></div>`).join('')}
-    <div style="border-top:1px solid var(--line);padding:8px 0 0"><b>La carte métier et la pièce de tenture</b> <span class="muted">· remises à ${DPRIZE[m]}. La carte métier n'est pas posée : son dos complète le dessin du lieu.</span>
-      <div class="row" style="margin-top:6px">${TT.map(t => `<button class="btn small ${own === t ? '' : 'ghost'}" data-n2piece="${pc.id}:${t}">${Lx('Gagnées par', 'Won by')} ${tname(t)}</button>`).join('')}<span class="muted" style="font-size:12.5px">${DST[m] ? 'Automatique quand la station est gagnée.' : ''}</span></div></div></div>`; }).join('')}
+  ${(DUEL[id] || []).map(m => { const C = STMAP[m].mini, pc = PIECES.find(p => p.mini === m), own = pieceOwner(pc), tm = n.teams || [[], []], showT = TT.filter(t => me === '' || me === String(t)); return `<div class="card" style="margin-top:14px"><h3>Les cartes bonus · ${DUELLAB[m]}</h3>
+    <p class="muted" style="margin:0 0 8px;font-size:13px">Chaque animateur a le jeu de cartes de son équipe. Lis la devinette et le « Le saviez-vous ? ». Quand ton équipe trouve, remets-lui la carte et touche le nom de celui qui a trouvé : 1 point pour l'équipe, 1 point perso. Derrière les cartes, un puzzle à reconstituer.</p>
+    ${DQ[m].map((k, j) => `<div style="border-top:1px solid var(--line);padding:8px 0"><b>${j ? 'Le saviez-vous ?' : 'Devinette'}</b> · ${C[k][0]} <details style="display:inline"><summary class="muted" style="display:inline;cursor:pointer">réponse</summary> <i>${C[k][1]}</i></details>
+      ${showT.map(t => `<div class="row" style="margin-top:6px;gap:6px"><span class="pill2" style="font-size:12.5px">${tdot(t)}${tname(t)} · trouvé par</span>${tm[t].filter(i => n.players[i] && n.players[i].name.trim()).map(i => `<button class="btn small ${cq(m, j, t) === i ? '' : 'ghost'}" data-n2cq="${m}:${j}:${t}:${i}" ${lockT(t)}>${esc(n.players[i].name)}</button>`).join('') || '<span class="muted" style="font-size:12.5px">formez d\'abord les équipes</span>'}</div>`).join('')}</div>`).join('')}
+    <div style="border-top:1px solid var(--line);padding:8px 0 0"><b>La carte métier et la pièce de tenture</b> <span class="muted">· remises à ${DPRIZE[m]}.</span>
+      <div class="row" style="margin-top:6px">${TT.map(t => `<button class="btn small ${own === t ? '' : 'ghost'}" data-n2piece="${pc.id}:${t}">${Lx('Gagnées par', 'Won by')} ${tname(t)}</button>`).join('')}<span class="muted" style="font-size:12.5px">${DST[m] ? 'Automatique quand la station est gagnée.' : ''}</span></div></div>
+    <p class="muted" style="margin:8px 0 0;font-size:12.5px">Cartes trouvées depuis le début : ${TT.map(t => `${tname(t)} ${cardsOf(t)}`).join(' · ')}</p></div>`; }).join('')}
   ${s.final ? `<div class="card" style="margin-top:14px"><h3>${Lx('Les pièces non trouvées', 'The pieces not found')}</h3>
     ${lostMini().length ? lostMini().map(p => `<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:8px 0"><span>${p.lab}</span><span class="row">${TT.map(t => `<button class="btn small ${n.rp[p.id] === t ? '' : 'ghost'}" data-n2rp="${p.id}:${t}">${tname(t)}</button>`).join('')}</span></div>`).join('') : `<p class="muted" style="margin:0">${Lx('Toutes les pièces du chemin ont été trouvées.', 'Every piece along the way was found.')}</p>`}</div>` : ''}
   ${s.oeuvres ? `<details class="card" id="oe-${id}" ${OPEN['oe-' + id] ? 'open' : ''} style="margin-top:14px"><summary><b>Les deux œuvres</b> <span class="muted">· à lire une fois les deux puzzles terminés</span></summary><p class="muted" style="margin:10px 0">${s.oeuvres.intro}</p>${s.oeuvres.list.map(([t, st, tx, qq]) => `<div style="margin:12px 0"><b>${t}</b><br><i>${st}</i><p style="margin:6px 0">${tx}</p><p style="margin:0"><b>La question à retenir :</b> ${qq}</p></div>`).join('')}<p style="margin:10px 0 0"><b>Le lien entre les deux œuvres.</b> ${s.oeuvres.lien}</p></details>` : ''}
@@ -1122,7 +1128,7 @@ function redoN2(what) {
   if (what === 'savoir') n.q = fresh2().q;
   if (what.startsWith('st:')) {
     const id = what.slice(3); delete n.res[id]; if (n.arr) delete n.arr[id]; if (n.vis) delete n.vis[id];
-    (DUEL[id] || []).forEach(m => { const mp = PIECES.find(p => p.mini === m); if (mp) { delete n.pc[mp.id]; delete n.rp[mp.id]; } if (n.dq) delete n.dq[m]; });
+    (DUEL[id] || []).forEach(m => { const mp = PIECES.find(p => p.mini === m); if (mp) { delete n.pc[mp.id]; delete n.rp[mp.id]; } if (n.dq) delete n.dq[m]; if (n.cq) delete n.cq[m]; });
     if (id === 'porte') n.rp = {};
   }
 }
@@ -1149,6 +1155,7 @@ function click2(d, t) {
   if (d.n2bmr !== undefined) { BM().r = +d.n2bmr; save(); render(); return true; }
   if (d.n2bmg) { const [r, tm, i] = d.n2bmg.split(':').map(Number); if (role() !== '' && role() !== String(tm)) return true; const b = BM(); const g = (b.g[r] || [null, null]).slice(); g[tm] = g[tm] === i ? null : i; b.g[r] = g; save(); render(); return true; }
   if (d.n2bmw) { const [r, tm] = d.n2bmw.split(':').map(Number); const b = BM(); b.w[r] = tm; const t2 = TT.find(x => bmWins(x) >= 2); if (t2 !== undefined) n.res.bas = t2; else if (n.res.bas !== undefined && bmWins(n.res.bas) < 2) delete n.res.bas; save(); render(); return true; }
+  if (d.n2cq) { const [m, j, tm, i] = d.n2cq.split(':'); if (role() !== '' && role() !== tm) return true; n.cq = n.cq || {}; n.cq[m] = n.cq[m] || {}; const a = (n.cq[m][j] || [null, null]).slice(); a[+tm] = a[+tm] === +i ? null : +i; n.cq[m][j] = a; save(); render(); return true; }
   if (d.n2dq) { const [m, j, tm] = d.n2dq.split(':'); n.dq = n.dq || {}; const a = (n.dq[m] || [null, null]).slice(); a[+j] = +tm; n.dq[m] = a; save(); render(); return true; }
   if (d.n2res) { const [id, tm] = d.n2res.split(':'); n.res[id] = +tm; save(); render(); return true; }
   if (d.n2piece) { const [id, v] = d.n2piece.split(':'); const val = v === 'x' ? 'x' : +v; n.pc[id] = val; if (n.pc[id] !== 'x') delete n.rp[id]; save(); render(); return true; }
@@ -1333,7 +1340,7 @@ function pFacts(t) {
 function pScores(t) {
   return `<div class="pscore">${TT.map(tm => `<div class="pcard" style="border-color:${TEAMS2[tm].col}"><div class="pk">${tdot(tm)}${esc(tname(tm))}${tm === t ? ' · vous' : ''}</div><b class="big">${teamPts(tm)}</b><span class="muted"> points</span><div class="muted" style="font-size:13px;margin-top:4px">${piecesOf(tm)} pièce${piecesOf(tm) > 1 ? 's' : ''} de tenture</div></div>`).join('')}</div>
   <div class="pcard" style="padding:8px">${tenture()}</div>
-  <p class="muted" style="font-size:12.5px;margin:8px 2px">Station gagnée : 4 points et une pièce. Station perdue : 3 points. Question du duel des cartes : 1 point. Arrivée en premier : 1 point.</p>`;
+  <p class="muted" style="font-size:12.5px;margin:8px 2px">Station gagnée : 4 points et une pièce. Station perdue : 3 points. Carte bonus trouvée : 1 point. Arrivée en premier : 1 point.</p>`;
 }
 
 function pMe(t) {
