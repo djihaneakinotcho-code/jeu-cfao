@@ -758,6 +758,7 @@ const TT = [0, 1];
 const BMC = [[0, 1, 2, 3, 4, 0], [3, 4, 1, 1, 0, 2], [4, 2, 3, 0, 1, 3], [1, 3, 0, 4, 2, 4]];
 const BMDEF = ['Rouge', 'Orange', 'Noir', 'Vert', 'Jaune'];
 const BMHEX = { rouge: '#D93A2B', jaune: '#FBBC04', bleu: '#2F6FD6', vert: '#2E9E5B', orange: '#F07C1E', violet: '#7A4FC4', rose: '#E86AA6', noir: '#141414', blanc: '#F5F1E8', marron: '#8B5A2B', gris: '#9A9A9A', turquoise: '#1FB5B0', beige: '#E3C9A0', bordeaux: '#7D1E2C' };
+const lockT = t => { const r = role(); return r !== '' && r !== String(t) ? 'disabled title="Ce téléphone suit l\'autre équipe"' : ''; };
 const BM = () => { const n = N(); n.bm = n.bm || { r: 0, g: {}, w: {} }; return n.bm; };
 const bmCols = () => { const c = (N().bmc || BMDEF).slice(0, BMDEF.length); while (c.length < BMDEF.length) c.push(BMDEF[c.length]); return c; };
 const bmHex = c => BMHEX[String(c).trim().toLowerCase()] || '#777';
@@ -772,7 +773,7 @@ function bmCard(id) {
     <p class="muted" style="margin:0 0 10px;font-size:13px">À chaque manche, chaque équipe désigne son gardien du code. Il reçoit la combinaison sur son téléphone (onglet Carte), se place devant le tiroir et ne répond que par oui ou non. La première équipe qui trouve gagne la manche.</p>
     <div class="row" style="margin-bottom:10px">${[0, 1, 2, 3].map(k => `<button class="btn small ${k === r ? '' : 'ghost'}" data-n2bmr="${k}">${k < 3 ? 'Manche ' + (k + 1) : 'Bonus'}${b.w[k] !== undefined ? ' ✓' : ''}</button>`).join('')}</div>
     ${TT.map(t => `<div style="margin:8px 0"><b class="pill2">${tdot(t)}${tname(t)}</b> <span class="muted" style="font-size:13px">· gardien : ${g[t] !== null && g[t] !== undefined ? esc(nm(g[t])) : 'à désigner'}</span>
-      <div class="row" style="margin-top:6px">${(tm[t] || []).filter(i => n.players[i] && n.players[i].name.trim()).map(i => `<button class="btn small ${g[t] === i ? '' : 'ghost'}" data-n2bmg="${r}:${t}:${i}">${esc(nm(i))}</button>`).join('')}</div></div>`).join('')}
+      <div class="row" style="margin-top:6px">${(tm[t] || []).filter(i => n.players[i] && n.players[i].name.trim()).map(i => `<button class="btn small ${g[t] === i ? '' : 'ghost'}" data-n2bmg="${r}:${t}:${i}" ${lockT(t)}>${esc(nm(i))}</button>`).join('')}</div></div>`).join('')}
     <div class="row" style="margin-top:10px"><span class="muted" style="font-size:13px">Gagnante de la manche :</span>${TT.map(t => `<button class="btn small ${b.w[r] === t ? '' : 'ghost'}" data-n2bmw="${r}:${t}">${tdot(t)} ${tname(t)}</button>`).join('')}</div>
     <p class="muted" style="margin:8px 0 0;font-size:13px">Manches gagnées : ${TT.map(t => `${tname(t)} ${bmWins(t)}`).join(' · ')}. ${done ? 'Passez à la manche suivante.' : ''} La première équipe à 2 manches gagne la station.</p>
     <details style="margin-top:10px"><summary class="muted">Vérifier la combinaison de cette manche (ne pas montrer)</summary>${bmSwatches(r)}</details>
@@ -1038,12 +1039,12 @@ V2.st = id => {
     ${timerHTML(s.secs)}
   </div>
   <div class="card" style="margin-top:14px"><h3>${Lx("Arrivée de l'équipe", 'Team arrival')} <span class="muted" style="font-size:13px">· révèle la station sur la carte des joueurs${s.final || id === 'zin' ? '' : ' · la première arrivée gagne 1 point'}</span></h3>
-    <div class="row">${TT.map(t => { const v = ((n.vis || {})[id] || [])[t]; return `<button class="btn small ${v ? '' : 'ghost'} ${me === String(t) ? 'mine' : ''}" data-n2vis="${id}:${t}">${tdot(t)} ${tname(t)} ${v ? '· arrivée ✓' : '· est arrivée'}</button>`; }).join('')}</div>
+    <div class="row">${TT.map(t => { const v = ((n.vis || {})[id] || [])[t]; return `<button class="btn small ${v ? '' : 'ghost'} ${me === String(t) ? 'mine' : ''}" data-n2vis="${id}:${t}" ${lockT(t)}>${tdot(t)} ${tname(t)} ${v ? '· arrivée ✓' : '· est arrivée'}</button>`; }).join('')}</div>
     ${firstArr(id) !== null ? `<p class="muted" style="margin:8px 0 0;font-size:13px">${tname(firstArr(id))} est arrivée en premier : +1 point.</p>` : ''}</div>
   ${bmCard(id)}
   <div class="card" style="margin-top:14px"><h3>${Lx('Qui gagne la pièce', 'Who wins the piece')} « ${PIECES.find(p => p.st === id).lab} » ?</h3>
     <div class="row">${s.coll ? `<button class="btn ${w === 2 ? '' : 'ghost'}" data-n2res="${id}:2">${tdot(2)} ${Lx('Le groupe a réussi le circuit', 'The group completed the circuit')}</button>` : TT.map(t => `<button class="btn ${w === t ? '' : 'ghost'} ${me === String(t) ? 'mine' : ''}" data-n2res="${id}:${t}">${tdot(t)} ${tname(t)}</button>`).join('')}</div>
-    <p class="muted" style="margin:8px 0 0;font-size:13px">${w === null ? Lx('Pas encore de résultat. Un second clic efface le résultat.', 'No result yet. A second click clears it.') : (w === 2 ? Lx('Pièce gagnée par tous : 4 points pour chaque équipe.', 'Piece won by all: 4 points for each team.') : Lx(`${tname(w)} gagne la pièce et 4 points, ${tname(other(w))} marque 3 points.`, `${tname(w)} wins the piece and 4 points, ${tname(other(w))} scores 3 points.`))}</p></div>
+    <p class="muted" style="margin:8px 0 0;font-size:13px">${w === null ? Lx('Pas encore de résultat. Pour corriger, touchez l\'autre équipe ; pour tout effacer, « Rejouer » en bas.', 'No result yet. A second click clears it.') : (w === 2 ? Lx('Pièce gagnée par tous : 4 points pour chaque équipe.', 'Piece won by all: 4 points for each team.') : Lx(`${tname(w)} gagne la pièce et 4 points, ${tname(other(w))} marque 3 points.`, `${tname(w)} wins the piece and 4 points, ${tname(other(w))} scores 3 points.`))}</p></div>
   ${(DUEL[id] || []).map(m => { const C = STMAP[m].mini, pc = PIECES.find(p => p.mini === m), own = pieceOwner(pc); return `<div class="card" style="margin-top:14px"><h3>Le duel des cartes · ${DUELLAB[m]}</h3>
     <p class="muted" style="margin:0 0 8px;font-size:13px">Lis la devinette et le « Le saviez-vous ? » pour faire deviner le lieu. La première équipe qui répond juste marque 1 point par question ; ajoute 1 point perso à celui qui a trouvé (panneau « Points perso »).</p>
     ${DQ[m].map((k, j) => `<div style="border-top:1px solid var(--line);padding:8px 0"><b>${j ? 'Le saviez-vous ?' : 'Devinette'}.</b> ${C[k][0]} <details style="display:inline"><summary class="muted" style="display:inline;cursor:pointer">réponse</summary> <i>${C[k][1]}</i></details>
@@ -1055,7 +1056,7 @@ V2.st = id => {
   ${s.oeuvres ? `<details class="card" id="oe-${id}" ${OPEN['oe-' + id] ? 'open' : ''} style="margin-top:14px"><summary><b>Les deux œuvres</b> <span class="muted">· à lire une fois les deux puzzles terminés</span></summary><p class="muted" style="margin:10px 0">${s.oeuvres.intro}</p>${s.oeuvres.list.map(([t, st, tx, qq]) => `<div style="margin:12px 0"><b>${t}</b><br><i>${st}</i><p style="margin:6px 0">${tx}</p><p style="margin:0"><b>La question à retenir :</b> ${qq}</p></div>`).join('')}<p style="margin:10px 0 0"><b>Le lien entre les deux œuvres.</b> ${s.oeuvres.lien}</p></details>` : ''}
   ${s.q3 ? `<details class="card" id="q3-${id}" ${OPEN['q3-' + id] ? 'open' : ''} style="margin-top:14px"><summary><b>Les 3 questions du bus</b> <span class="muted">· pour le guide, ne pas projeter</span></summary><ol class="rules" style="margin-top:10px">${s.q3.map(([q, r]) => `<li><b>${q}</b><br><span class="muted">${r}</span></li>`).join('')}</ol></details>` : ''}
   <div class="row" style="margin-top:18px">${s.final ? next2('Le Pacte', 'The Pact') : `<button class="btn" data-go="${steps2().findIndex(x => x.id === 'carte')}">${Lx('Retour à la carte', 'Back to the map')}</button>`}${redo2('st:' + id)}</div>
-  ${notes(s.final ? ["Arrivée en silence. Le guide raconte la Porte, puis on passe sur l'esplanade.", "Les pièces non trouvées d'abord (en duel), puis le circuit tous ensemble, puis le Pacte et la tenture."] : ["Les deux équipes jouent la station en même temps : c'est un duel.", "Les accompagnateurs AWENI de chaque équipe valident sur leur téléphone. Un second clic sur un bouton efface le choix.", "Le guide raconte le lieu avant le jeu."])}`;
+  ${notes(s.final ? ["Arrivée en silence. Le guide raconte la Porte, puis on passe sur l'esplanade.", "Les pièces non trouvées d'abord (en duel), puis le circuit tous ensemble, puis le Pacte et la tenture."] : ["Les deux équipes jouent la station en même temps : c'est un duel.", "Les accompagnateurs AWENI de chaque équipe valident sur leur téléphone. Un second appui ne fait rien : pour corriger, touchez l'autre choix. Les résultats communs (duel, gagnant) sont saisis par un seul animateur.", "Le guide raconte le lieu avant le jeu."])}`;
 };
 
 V2.pacte = () => {
@@ -1066,7 +1067,7 @@ V2.pacte = () => {
   <p class="lead">${Lx("Chaque équipe vote en secret. Donner : ses pièces rejoignent la tenture, qui s'allume. Garder : l'équipe garde ses points pour elle, mais ses pièces restent dans le noir.", 'Each team votes in secret. Give: its pieces join the hanging, which lights up. Keep: the team keeps its points, but its pieces stay dark.')}</p>
   <div class="vote" style="margin-top:14px">${TT.map(t => `<div class="card" style="border-color:${TEAMS2[t].col}"><h3 class="pill2" style="font-size:15px">${tdot(t)}${tname(t)} · ${piecesOf(t)} ${Lx('pièces', 'pieces')}</h3>
     ${n.revealed ? `<div class="big" style="color:${given(t) ? 'var(--ok)' : 'var(--bad)'}">${given(t) ? Lx('Donne', 'Gives') : Lx('Garde', 'Keeps')}</div>`
-    : `<div class="row"><button class="okb ${n.votes[t] ? 'y' : ''}" data-n2vote="${t}:give">${Lx('Donne', 'Give')}</button><button class="okb ${n.votes[t] ? 'y' : ''}" data-n2vote="${t}:keep">${Lx('Garde', 'Keep')}</button></div><span class="muted">${n.votes[t] ? Lx('Vote enregistré ●', 'Vote recorded ●') : Lx('En attente', 'Waiting')}</span>`}</div>`).join('')}</div>
+    : `<div class="row"><button class="okb ${n.votes[t] ? 'y' : ''}" data-n2vote="${t}:give" ${lockT(t)}>${Lx('Donne', 'Give')}</button><button class="okb ${n.votes[t] ? 'y' : ''}" data-n2vote="${t}:keep" ${lockT(t)}>${Lx('Garde', 'Keep')}</button></div><span class="muted">${n.votes[t] ? Lx('Vote enregistré ●', 'Vote recorded ●') : Lx('En attente', 'Waiting')}</span>`}</div>`).join('')}</div>
   <div class="row" style="margin-top:18px">${n.revealed ? next2('Allumer la tenture', 'Light up the hanging') : `<button class="btn" data-n2reveal ${all ? '' : 'disabled'}>${Lx('Révéler les votes', 'Reveal the votes')}</button>`}${n.revealed || n.votes.some(v => v) ? `<button class="btn small ghost" data-n2unreveal>Revoter</button>` : ''}</div>
   ${notes(["Saisis les votes à l'abri des regards : les deux boutons s'allument de la même façon pour ne rien trahir à l'écran.", "Révèle en même temps, puis laisse un silence.", "Si une équipe garde : pas de jugement. On en parle au débrief."])}`;
 };
@@ -1144,16 +1145,16 @@ function click2(d, t) {
   if (d.n2force !== undefined) { n.open = true; n.bonus = false; save(); render(); return true; }
   if (d.n2q) { const [r, tm, v] = d.n2q.split(':').map(Number); n.q[r][tm] = n.q[r][tm] === (v === 1) ? null : v === 1; save(); render(); return true; }
   if (d.n2bmr !== undefined) { BM().r = +d.n2bmr; save(); render(); return true; }
-  if (d.n2bmg) { const [r, tm, i] = d.n2bmg.split(':').map(Number); const b = BM(); const g = (b.g[r] || [null, null]).slice(); g[tm] = g[tm] === i ? null : i; b.g[r] = g; save(); render(); return true; }
-  if (d.n2bmw) { const [r, tm] = d.n2bmw.split(':').map(Number); const b = BM(); if (b.w[r] === tm) delete b.w[r]; else b.w[r] = tm; const t2 = TT.find(x => bmWins(x) >= 2); if (t2 !== undefined) n.res.bas = t2; else if (n.res.bas !== undefined && bmWins(n.res.bas) < 2) delete n.res.bas; save(); render(); return true; }
-  if (d.n2dq) { const [m, j, tm] = d.n2dq.split(':'); n.dq = n.dq || {}; const a = (n.dq[m] || [null, null]).slice(); a[+j] = a[+j] === +tm ? null : +tm; n.dq[m] = a; save(); render(); return true; }
-  if (d.n2res) { const [id, tm] = d.n2res.split(':'); if (winner(id) === +tm) delete n.res[id]; else n.res[id] = +tm; save(); render(); return true; }
-  if (d.n2piece) { const [id, v] = d.n2piece.split(':'); const val = v === 'x' ? 'x' : +v; if (n.pc[id] === val) delete n.pc[id]; else n.pc[id] = val; if (n.pc[id] !== 'x') delete n.rp[id]; save(); render(); return true; }
-  if (d.n2vis) { const [id, tm] = d.n2vis.split(':'); n.vis = n.vis || {}; const v = (n.vis[id] || [null, null]).slice(); v[+tm] = v[+tm] ? null : Date.now(); if (!v[0] && !v[1]) delete n.vis[id]; else n.vis[id] = v; save(); render(); return true; }
+  if (d.n2bmg) { const [r, tm, i] = d.n2bmg.split(':').map(Number); if (role() !== '' && role() !== String(tm)) return true; const b = BM(); const g = (b.g[r] || [null, null]).slice(); g[tm] = g[tm] === i ? null : i; b.g[r] = g; save(); render(); return true; }
+  if (d.n2bmw) { const [r, tm] = d.n2bmw.split(':').map(Number); const b = BM(); b.w[r] = tm; const t2 = TT.find(x => bmWins(x) >= 2); if (t2 !== undefined) n.res.bas = t2; else if (n.res.bas !== undefined && bmWins(n.res.bas) < 2) delete n.res.bas; save(); render(); return true; }
+  if (d.n2dq) { const [m, j, tm] = d.n2dq.split(':'); n.dq = n.dq || {}; const a = (n.dq[m] || [null, null]).slice(); a[+j] = +tm; n.dq[m] = a; save(); render(); return true; }
+  if (d.n2res) { const [id, tm] = d.n2res.split(':'); n.res[id] = +tm; save(); render(); return true; }
+  if (d.n2piece) { const [id, v] = d.n2piece.split(':'); const val = v === 'x' ? 'x' : +v; n.pc[id] = val; if (n.pc[id] !== 'x') delete n.rp[id]; save(); render(); return true; }
+  if (d.n2vis) { const [id, tm] = d.n2vis.split(':'); if (role() !== '' && role() !== tm) return true; n.vis = n.vis || {}; const v = (n.vis[id] || [null, null]).slice(); v[+tm] = v[+tm] ? null : Date.now(); if (!v[0] && !v[1]) delete n.vis[id]; else n.vis[id] = v; save(); render(); return true; }
   if (d.n2pmode !== undefined) { enterPlayer(); return true; }
   if (d.n2arr) { const [id, tm] = d.n2arr.split(':'); n.arr = n.arr || {}; if (n.arr[id] === +tm) delete n.arr[id]; else n.arr[id] = +tm; save(); render(); return true; }
   if (d.n2rp) { const [id, tm] = d.n2rp.split(':'); if (n.rp[id] === +tm) delete n.rp[id]; else n.rp[id] = +tm; save(); render(); return true; }
-  if (d.n2vote) { const [tm, v] = d.n2vote.split(':'); n.votes[+tm] = v; save(); render(); return true; }
+  if (d.n2vote) { const [tm, v] = d.n2vote.split(':'); if (role() !== '' && role() !== tm) return true; n.votes[+tm] = v; save(); render(); return true; }
   if (d.n2reveal !== undefined) { n.revealed = true; save(); render(); return true; }
   if (d.n2unreveal !== undefined) { n.revealed = false; n.votes = [null, null]; n.lit = false; n.flam = null; save(); render(); return true; }
   if (d.n2lit !== undefined) { n.lit = true; save(); render(); return true; }
