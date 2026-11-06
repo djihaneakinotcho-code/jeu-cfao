@@ -33,10 +33,9 @@ textarea{min-height:76px;resize:vertical}
 (function(){
 firebase.initializeApp({apiKey:"AIzaSyBZ0RLRVkclJNruT4jZNkBTRTEaHXJfZsA",authDomain:"jeu-aweni.firebaseapp.com",projectId:"jeu-aweni",storageBucket:"jeu-aweni.firebasestorage.app",messagingSenderId:"669734962881",appId:"1:669734962881:web:98052606d4a9337b657640"});
 const db=firebase.firestore();
-const A={note:0,ep:'',pref:[],conn:0,k1:0,k2:0,k3:0,orga:0,reco:'',fort:'',amel:'',nom:'',titres:{}};
-const TITRES=[['architecte',"L'Architecte","dessine la vision et trace la route pour tous"],['batisseur','Le Bâtisseur',"transforme une idée en résultat concret"],['passeur','Le Passeur',"transmet et fait grandir ceux qui l'entourent"],['rassembleur','Le Rassembleur',"fédère et fait avancer tout le monde ensemble"],['stratege','Le Stratège',"a toujours un coup d'avance"],['gardien','Le Gardien',"protège l'équipe et veille sur ses valeurs"],['griot','Le Griot',"porte la parole et fait vivre l'histoire"],['visionnaire','Le Visionnaire',"voit plus loin que l'horizon"]];
-let NOMS=[];
-db.collection('inscrits').get().then(s=>{const seen=new Set();s.docs.map(d=>d.data()).filter(r=>(r.lvl||2)===2&&!/\b(DAF|RAF)\b|financ/i.test(r.fonction||'')).forEach(r=>{const n=String(r.name||'').trim();if(n&&!seen.has(n.toLowerCase())){seen.add(n.toLowerCase());NOMS.push(n)}});NOMS.sort((a,b)=>a.localeCompare(b,'fr'));render()}).catch(()=>{});
+const A={note:0,ep:'',pref:[],conn:0,k1:0,k2:0,k3:0,orga:0,reco:'',fort:'',amel:'',nom:'',arch:''};
+const ARCH=[['Cotonou',[['Le Cerveau','trouve la solution et voit ce que les autres ratent'],['Le Moteur','toujours le premier à se lancer'],['Le Phare','garde le cap et son calme quand ça chauffe'],["L'Étincelle",'met la joie dans le groupe'],['Le Pont','relie les autres et aide chacun à passer'],['Le Socle','celui ou celle sur qui on peut compter'],['La Dynamo','met tout le monde en mouvement'],['Le Capteur','observe et pose la question juste']]],
+ ['Ouidah',[["L'Architecte",'dessine la vision et trace la route pour tous'],['Le Bâtisseur','transforme une idée en résultat concret'],['Le Passeur',"transmet et fait grandir ceux qui l'entourent"],['Le Rassembleur','fédère et fait avancer tout le monde ensemble'],['Le Stratège',"a toujours un coup d'avance"],['Le Gardien',"protège l'équipe et veille sur ses valeurs"],['Le Griot',"porte la parole et fait vivre l'histoire"],['Le Visionnaire',"voit plus loin que l'horizon"]]]];
 let sent=false;try{sent=localStorage.getItem('aw-avis-sent')==='1'}catch(e){}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const scale=(k,lo,hi)=>`<div class="sc">${[1,2,3,4,5].map(v=>`<button data-s="${k}:${v}" class="${A[k]===v?'on':''}">${v}</button>`).join('')}</div><div class="lbl"><span>${lo}</span><span>${hi}</span></div>`;
@@ -58,22 +57,23 @@ function render(){
  <div class="q"><b>7. Comment jugez-vous l'organisation (timing, transport, accueil) ?</b>${scale('orga','À revoir','Parfaite')}</div>
  <div class="q"><b>8. Recommanderiez-vous ce type de team building ?</b>${choice('reco',['Oui','Peut-être','Non'])}</div>
  <div class="q"><b>9. Qu'aimeriez-vous améliorer ?</b><textarea id="amel" maxlength="500" placeholder="Une idée, une remarque…">${esc(A.amel)}</textarea></div>
- <div class="q"><b>10. Les titres de Ouidah <small>(facultatif)</small></b><p style="margin:0 0 10px;color:var(--muted);font-size:14px">Nous n'avons pas eu le temps de les remettre ce soir : à vous de les décerner. Pour chaque titre, choisissez le directeur ou la directrice qui l'incarne le mieux.</p>
-   ${TITRES.map(([id,t,d])=>`<div style="margin:10px 0"><div style="font-weight:700">${t} <span style="color:var(--muted);font-weight:400;font-size:13px">· ${d}</span></div>${NOMS.length?`<select data-t="${id}" style="width:100%;margin-top:6px;background:#141414;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:15px"><option value="">—</option>${NOMS.map(n=>`<option ${A.titres[id]===n?'selected':''}>${esc(n)}</option>`).join('')}</select>`:`<input data-t="${id}" maxlength="40" placeholder="Prénom et nom" value="${esc(A.titres[id]||'')}" style="margin-top:6px">`}</div>`).join('')}</div>
+ <div class="q"><b>10. Selon vous, quel archétype vous correspond le mieux ? <small>(pour information)</small></b>
+   ${ARCH.map(([g,list])=>`<div style="color:var(--muted);font-size:12.5px;margin:10px 0 6px;letter-spacing:1px;text-transform:uppercase">${g}</div><div class="ch">${list.map(([t,d])=>`<button data-a="${esc(t)}" class="${A.arch===t?'on':''}" title="${esc(d)}">${esc(t)}</button>`).join('')}</div>`).join('')}
+   ${A.arch?`<p style="margin:10px 0 0;color:var(--muted);font-size:13.5px">${esc(A.arch)} · ${esc(ARCH.flatMap(g=>g[1]).find(x=>x[0]===A.arch)[1])}</p>`:''}</div>
  <div class="q"><b>11. Votre nom <small>(facultatif)</small></b><input id="nom" maxlength="60" value="${esc(A.nom)}" autocomplete="name"></div>
  <button class="send" id="send">Envoyer mon avis</button><div class="err" id="err"></div>
  <div class="foot">AWENI DESIGN · Cotonou · With Africa, for Africa</div>`;
 }
-function keep(){['fort','amel','nom'].forEach(k=>{const e=document.getElementById(k);if(e)A[k]=e.value});document.querySelectorAll('[data-t]').forEach(e=>{const v=e.value.trim();if(v)A.titres[e.dataset.t]=v.slice(0,40);else delete A.titres[e.dataset.t]})}
-document.addEventListener('change',ev=>{if(ev.target.dataset&&ev.target.dataset.t)keep()});
+function keep(){['fort','amel','nom'].forEach(k=>{const e=document.getElementById(k);if(e)A[k]=e.value})}
 document.addEventListener('click',async ev=>{
  const b=ev.target.closest('button');if(!b)return;keep();
+ if(b.dataset.a){const v=b.dataset.a.replace(/&amp;/g,'&');A.arch=A.arch===v?'':v;return render()}
  if(b.dataset.s){const[k,v]=b.dataset.s.split(':');A[k]=+v;return render()}
  if(b.dataset.c){const i=b.dataset.c.indexOf(':'),k=b.dataset.c.slice(0,i),v=b.dataset.c.slice(i+1).replace(/&amp;/g,'&').replace(/&#39;/g,"'");if(b.dataset.m==='1'){A[k]=A[k].includes(v)?A[k].filter(x=>x!==v):A[k].concat(v)}else A[k]=A[k]===v?'':v;return render()}
  if(b.id==='send'){
   const er=document.getElementById('err');if(!A.note){er.textContent='Merci de donner au moins une note globale (question 1).';return}
   b.disabled=true;b.textContent='Envoi…';
-  const row={note:A.note,ep:A.ep,pref:A.pref,conn:A.conn,k1:A.k1,k2:A.k2,k3:A.k3,orga:A.orga,reco:A.reco,fort:A.fort.trim().slice(0,300),amel:A.amel.trim().slice(0,500),nom:A.nom.trim().slice(0,60),titres:A.titres,ts:Date.now()};
+  const row={note:A.note,ep:A.ep,pref:A.pref,conn:A.conn,k1:A.k1,k2:A.k2,k3:A.k3,orga:A.orga,reco:A.reco,fort:A.fort.trim().slice(0,300),amel:A.amel.trim().slice(0,500),nom:A.nom.trim().slice(0,60),titres:A.arch?{moi:A.arch}:{},ts:Date.now()};
   try{await Promise.race([db.collection('avis').add(row),new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),8000))]);sent=true;try{localStorage.setItem('aw-avis-sent','1')}catch(e){}render()}
   catch(e){b.disabled=false;b.textContent='Envoyer mon avis';er.textContent="L'envoi n'est pas passé. Vérifiez votre connexion et réessayez."}
  }
