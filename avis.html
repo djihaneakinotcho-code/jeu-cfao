@@ -49,18 +49,14 @@ function render(){
  <div class="q"><b>2. À quel épisode avez-vous participé ?</b>${choice('ep',['Cotonou','Ouidah','Les deux'])}</div>
  <div class="q"><b>3. Qu'avez-vous préféré ? <small>(plusieurs choix possibles)</small></b>${choice('pref',['Les jeux','La découverte culturelle','Les échanges entre filiales','L\'application','L\'ambiance','L\'organisation'],true)}</div>
  <div class="q"><b>4. Votre moment fort ?</b><textarea id="fort" maxlength="300" placeholder="Un jeu, un lieu, une rencontre…">${esc(A.fort)}</textarea></div>
- <div class="q"><b>5. Aujourd'hui, diriez-vous que…</b>
-   <p style="margin:6px 0">Je connais personnellement les autres participants</p>${scale('k1','Pas du tout','Tout à fait')}
-   <p style="margin:12px 0 6px">Je sais à qui m'adresser dans le réseau pour un sujet donné</p>${scale('k2','Pas du tout','Tout à fait')}
-   <p style="margin:12px 0 6px">Je me sens membre d'une même équipe</p>${scale('k3','Pas du tout','Tout à fait')}</div>
- <div class="q"><b>6. Ces deux journées vous ont-elles rapproché(e) de vos collègues des autres filiales ?</b>${scale('conn','Pas vraiment','Beaucoup')}</div>
- <div class="q"><b>7. Comment jugez-vous l'organisation (timing, transport, accueil) ?</b>${scale('orga','À revoir','Parfaite')}</div>
- <div class="q"><b>8. Recommanderiez-vous ce type de team building ?</b>${choice('reco',['Oui','Peut-être','Non'])}</div>
- <div class="q"><b>9. Qu'aimeriez-vous améliorer ?</b><textarea id="amel" maxlength="500" placeholder="Une idée, une remarque…">${esc(A.amel)}</textarea></div>
- <div class="q"><b>10. Selon vous, quel archétype vous correspond le mieux ? <small>(pour information)</small></b>
+ <div class="q"><b>5. Ces deux journées vous ont-elles rapproché(e) de vos collègues des autres filiales ?</b>${scale('conn','Pas vraiment','Beaucoup')}</div>
+ <div class="q"><b>6. Comment jugez-vous l'organisation (timing, transport, accueil) ?</b>${scale('orga','À revoir','Parfaite')}</div>
+ <div class="q"><b>7. Recommanderiez-vous ce type de team building ?</b>${choice('reco',['Oui','Peut-être','Non'])}</div>
+ <div class="q"><b>8. Qu'aimeriez-vous améliorer ?</b><textarea id="amel" maxlength="500" placeholder="Une idée, une remarque…">${esc(A.amel)}</textarea></div>
+ <div class="q"><b>9. Selon vous, quel archétype vous correspond le mieux ? <small>(pour information)</small></b>
    ${ARCH.map(([g,list])=>`<div style="color:var(--muted);font-size:12.5px;margin:10px 0 6px;letter-spacing:1px;text-transform:uppercase">${g}</div><div class="ch">${list.map(([t,d])=>`<button data-a="${esc(t)}" class="${A.arch===t?'on':''}" title="${esc(d)}">${esc(t)}</button>`).join('')}</div>`).join('')}
    ${A.arch?`<p style="margin:10px 0 0;color:var(--muted);font-size:13.5px">${esc(A.arch)} · ${esc(ARCH.flatMap(g=>g[1]).find(x=>x[0]===A.arch)[1])}</p>`:''}</div>
- <div class="q"><b>11. Votre nom <small>(facultatif)</small></b><input id="nom" maxlength="60" value="${esc(A.nom)}" autocomplete="name"></div>
+ <div class="q"><b>10. Votre nom <small>(facultatif)</small></b><input id="nom" maxlength="60" value="${esc(A.nom)}" autocomplete="name"></div>
  <button class="send" id="send">Envoyer mon avis</button><div class="err" id="err"></div>
  <div class="foot">AWENI DESIGN · Cotonou · With Africa, for Africa</div>`;
 }
